@@ -129,7 +129,7 @@
           $('#wir-reply-text').val('');
           renderThread(res.data.items || []);
           // update list badge to replied
-          $('.wir-item.is-active').attr('data-status', 'replied');
+          // $('.wir-item.is-active').attr('data-status', 'replied');
         } else {
           $status.css('color', '#b91c1c').text((res && res.data) || WIRAdmin.i18n.error);
         }
@@ -183,7 +183,7 @@
       function (res) {
         if (res && res.success) {
           $('.wir-preview-status-badge').html(badge(res.data.status));
-          $('.wir-item.is-active').attr('data-status', res.data.status);
+          // $('.wir-item.is-active').attr('data-status', res.data.status);
         }
       }
     );
