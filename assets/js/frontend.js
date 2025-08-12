@@ -1,4 +1,4 @@
-/* global WIRData, jQuery */
+/* global WIRData, jQuery, grecaptcha */
 (function ($) {
   'use strict';
   const $d = $(document);
@@ -36,6 +36,36 @@
     if (e.key === 'Escape') closeModal();
   });
 
+  function getToken(cb) {
+    if (!WIRData.recaptcha || typeof grecaptcha === 'undefined') {
+      cb('');
+      return;
+    }
+    grecaptcha.ready(function () {
+      let p;
+      try {
+        p = grecaptcha.execute(WIRData.recaptcha, { action: 'wir_submit' });
+      } catch (e) {
+        // likely v2, render widget and execute
+        if (!window.wirRecaptchaWidget) {
+          const div = document.createElement('div');
+          div.style.display = 'none';
+          document.body.appendChild(div);
+          window.wirRecaptchaWidget = grecaptcha.render(div, {
+            sitekey: WIRData.recaptcha,
+            size: 'invisible',
+          });
+        }
+        p = grecaptcha.execute(window.wirRecaptchaWidget);
+      }
+      if (p && typeof p.then === 'function') {
+        p.then(cb);
+      } else {
+        cb('');
+      }
+    });
+  }
+
   $d.on('click', '#wir-send', function () {
     const status = el('wir-status');
     status.textContent = '';
@@ -58,15 +88,18 @@
       return;
     }
 
-    $.post(WIRData.ajax, data, function (res) {
-      if (res && res.success) {
-        status.textContent = WIRData.i18n_sent || 'Request sent. Thank you!';
-        setTimeout(closeModal, 900);
-      } else {
-        status.textContent = (res && res.data) || 'Something went wrong.';
-      }
-    }).fail(function () {
-      status.textContent = 'Network error. Please try again.';
+    getToken(function (token) {
+      if (token) data.g_recaptcha_response = token;
+      $.post(WIRData.ajax, data, function (res) {
+        if (res && res.success) {
+          status.textContent = WIRData.i18n_sent || 'Request sent. Thank you!';
+          setTimeout(closeModal, 900);
+        } else {
+          status.textContent = (res && res.data) || 'Something went wrong.';
+        }
+      }).fail(function () {
+        status.textContent = 'Network error. Please try again.';
+      });
     });
   });
 
