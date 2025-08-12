@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<wpml-config>
+  <admin-texts>
+    <key name="wir_settings">
+      <key name="button_text" />
+      <key name="gdpr_label" />
+      <key name="topics" />
+    </key>
+  </admin-texts>
+  <custom-types>
+    <custom-type translate="0">wir_request</custom-type>
+  </custom-types>
+</wpml-config>

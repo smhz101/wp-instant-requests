@@ -1,0 +1,8 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: WP Instant Requests 1.0.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language-Team: \n"
+"X-Domain: wp-instant-requests\n"
+
+# Add strings as extracted by your PO tool.

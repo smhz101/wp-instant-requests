@@ -1,0 +1,113 @@
+/* Floating button + modal (minimal, accessible) */
+.wir-fab {
+	position: fixed;
+	bottom: 24px;
+	z-index: 9999;
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 14px;
+	border-radius: 9999px;
+	color: #fff;
+	box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+	cursor: pointer;
+	font-weight: 600;
+}
+.wir-fab:hover {
+	filter: brightness(0.96);
+}
+.wir-backdrop {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.35);
+	backdrop-filter: saturate(140%) blur(4px);
+	z-index: 9998;
+	display: none;
+}
+.wir-modal {
+	position: fixed;
+	inset: 0;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	z-index: 10000;
+}
+.wir-card {
+	width: min(560px, 92vw);
+	background: #fff;
+	border-radius: 16px;
+	box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+	padding: 22px;
+}
+.wir-row {
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+.wir-row > .col {
+	flex: 1 1 0;
+	min-width: 0;
+}
+.wir-input,
+.wir-select,
+.wir-textarea {
+	box-sizing: border-box;
+	width: 100%;
+	padding: 10px 12px;
+	border: 1px solid #e5e7eb;
+	border-radius: 10px;
+	line-height: 1.25;
+	max-width: 100%;
+}
+.wir-label {
+	font-weight: 600;
+	margin: 8px 0 6px;
+	display: block;
+}
+.wir-select {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	background-repeat: no-repeat;
+	background-position: right 10px center;
+	background-size: 12px;
+}
+.wir-textarea {
+	resize: vertical;
+}
+.wir-input:focus,
+.wir-select:focus,
+.wir-textarea:focus {
+	outline: none;
+	border-color: #93c5fd;
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+}
+.wir-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+	margin-top: 14px;
+	flex-wrap: wrap;
+}
+.wir-btn {
+	padding: 10px 14px;
+	border-radius: 10px;
+	border: 1px solid transparent;
+	cursor: pointer;
+	font-weight: 600;
+}
+.wir-btn-primary {
+	color: #fff;
+}
+.wir-btn-secondary {
+	background: #f3f4f6;
+}
+.wir-badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background: #f3f4f6;
+	border-radius: 9999px;
+	padding: 6px 10px;
+	font-size: 12px;
+}
