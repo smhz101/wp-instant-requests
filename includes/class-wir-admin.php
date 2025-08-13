@@ -699,21 +699,21 @@ class WIR_Admin {
 						<?php endforeach; ?>
 					</select>
 
-<select name="status">
-<option value=""><?php esc_html_e( 'All statuses', 'wp-instant-requests' ); ?></option>
-		<?php foreach ( array( 'open', 'replied', 'closed' ) as $_s ) : ?>
-<option value="<?php echo esc_attr( $_s ); ?>" <?php selected( $status, $_s ); ?>><?php echo esc_html( ucfirst( $_s ) ); ?></option>
-<?php endforeach; ?>
-</select>
+					<select name="status">
+						<option value=""><?php esc_html_e( 'All statuses', 'wp-instant-requests' ); ?></option>
+						<?php foreach ( array( 'open', 'replied', 'closed' ) as $_s ) : ?>
+						<option value="<?php echo esc_attr( $_s ); ?>" <?php selected( $status, $_s ); ?>><?php echo esc_html( ucfirst( $_s ) ); ?></option>
+						<?php endforeach; ?>
+					</select>
 
-<select name="assignee">
-<option value=""><?php esc_html_e( 'All assignees', 'wp-instant-requests' ); ?></option>
-		<?php foreach ( $assignees as $_u ) : ?>
-<option value="<?php echo esc_attr( $_u->ID ); ?>" <?php selected( $assignee, $_u->ID ); ?>><?php echo esc_html( $_u->display_name ); ?></option>
-<?php endforeach; ?>
-</select>
+					<select name="assignee">
+						<option value=""><?php esc_html_e( 'All assignees', 'wp-instant-requests' ); ?></option>
+						<?php foreach ( $assignees as $_u ) : ?>
+						<option value="<?php echo esc_attr( $_u->ID ); ?>" <?php selected( $assignee, $_u->ID ); ?>><?php echo esc_html( $_u->display_name ); ?></option>
+						<?php endforeach; ?>
+					</select>
 
-<button class="button"><?php esc_html_e( 'Filter', 'wp-instant-requests' ); ?></button>
+					<button class="button"><?php esc_html_e( 'Filter', 'wp-instant-requests' ); ?></button>
 
 					<!-- CSV export preserves filters -->
 					<a class="button" href="<?php echo esc_url( wp_nonce_url( add_query_arg( array_merge( $_GET, array( 'action' => 'wir_export_csv' ) ), admin_url( 'admin-post.php' ) ), 'wir_export_csv' ) ); ?>">
@@ -726,19 +726,18 @@ class WIR_Admin {
 				<aside class="wir-list">
 					<div class="wir-list-inner">
 						<?php if ( $q->have_posts() ) : ?>
-										<?php
-										while ( $q->have_posts() ) :
-											$q->the_post();
-											?>
-														<?php echo self::render_list_item( get_the_ID() ); ?>
-										<?php endwhile; else : ?>
-										<div class="wir-empty"><?php esc_html_e( 'No requests found.', 'wp-instant-requests' ); ?></div>
-											<?php
-										endif;
-										wp_reset_postdata();
-										?>
+							<?php 
+							while ( $q->have_posts() ) :
+							$q->the_post();
+							?>
+								<?php echo self::render_list_item( get_the_ID() ); ?>
+							<?php endwhile; else : ?>
+							<div class="wir-empty"><?php esc_html_e( 'No requests found.', 'wp-instant-requests' ); ?></div>
+							<?php
+							endif;
+							wp_reset_postdata();
+							?>
 						</div>
-	
 					<?php
 					$total = (int) $q->max_num_pages;
 					if ( $total > 1 ) :
