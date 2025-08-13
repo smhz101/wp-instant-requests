@@ -304,12 +304,9 @@ class WIR_Admin {
 	                        $max_id = $id;
 	                }
 
-	                if ( $last_id && $id > $last_id ) {
-	                        if ( 'unread' !== get_post_meta( $id, '_wir_status', true ) ) {
-	                                update_post_meta( $id, '_wir_status', 'unread' );
-	                        }
-	                        $items[] = self::render_list_item( $id );
-	                }
+                       if ( $last_id && $id > $last_id ) {
+                               $items[] = self::render_list_item( $id );
+                       }
 	        }
 
 	        wp_reset_postdata();
