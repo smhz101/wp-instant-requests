@@ -9,6 +9,10 @@ defined( 'ABSPATH' ) || exit;
 class WIR_Admin {
 
 	public static function ajax_get_header() {
+		if ( ! current_user_can('edit_wir_requests') && ! current_user_can('manage_options') ) {
+			wp_send_json_error('denied', 403);
+		}
+
 		check_ajax_referer( 'wir_admin_nonce', 'nonce' );
 
 		$id = absint( $_POST['request_id'] ?? 0 );
@@ -73,6 +77,10 @@ class WIR_Admin {
 	}
 
 	public static function ajax_get_thread() {
+		if ( ! current_user_can('edit_wir_requests') && ! current_user_can('manage_options') ) {
+    	wp_send_json_error('denied', 403);
+		}
+
 		check_ajax_referer( 'wir_admin_nonce', 'nonce' );
 
 		$id = absint( $_POST['request_id'] ?? 0 );
@@ -149,8 +157,8 @@ class WIR_Admin {
 	}
 
 	public static function ajax_toggle_status() {
-		if ( ! current_user_can( 'edit_wir_requests' ) ) {
-			wp_send_json_error( 'denied', 403 );
+		if ( ! current_user_can('edit_wir_requests') && ! current_user_can('manage_options') ) {
+			wp_send_json_error('denied', 403);
 		}
 
 		check_ajax_referer( 'wir_admin_nonce', 'nonce' );
@@ -171,8 +179,8 @@ class WIR_Admin {
 	}
 
 	public static function ajax_assign_me() {
-		if ( ! current_user_can( 'edit_wir_requests' ) ) {
-			wp_send_json_error( 'denied', 403 );
+		if ( ! current_user_can('edit_wir_requests') && ! current_user_can('manage_options') ) {
+			wp_send_json_error('denied', 403);
 		}
 
 		check_ajax_referer( 'wir_admin_nonce', 'nonce' );
@@ -356,8 +364,8 @@ class WIR_Admin {
 	}
 
 	public static function ajax_check_new() {
-		if ( ! current_user_can( 'edit_wir_requests' ) ) {
-			wp_send_json_error( 'denied', 403 );
+		if ( ! current_user_can('edit_wir_requests') && ! current_user_can('manage_options') ) {
+			wp_send_json_error('denied', 403);
 		}
 
 		check_ajax_referer( 'wir_admin_nonce', 'nonce' );
