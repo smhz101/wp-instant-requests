@@ -38,7 +38,7 @@ class WIR_Assets {
 
         // Localize data (globals + labels)
         $product = $integration->get_context();
-        wp_localize_script('wir-frontend', 'WIRData', [
+        $data = [
             'ajax'   => admin_url('admin-ajax.php'),
             'nonce'  => wp_create_nonce(WIR_Plugin::NONCE),
             'user'   => is_user_logged_in() ? wp_get_current_user()->display_name : '',
@@ -51,7 +51,20 @@ class WIR_Assets {
             'i18n_required' => __('Please fill required fields.', 'wp-instant-requests'),
             'i18n_consent'  => __('Please confirm consent.', 'wp-instant-requests'),
             'i18n_sent'     => __('Request sent. Thank you!', 'wp-instant-requests'),
-        ]);
+        ];
+
+        if (!empty($o['recaptcha_site'])) {
+            $data['recaptcha'] = $o['recaptcha_site'];
+            wp_enqueue_script(
+                'wir-recaptcha',
+                'https://www.google.com/recaptcha/api.js?render=explicit',
+                [],
+                null,
+                true
+            );
+        }
+
+        wp_localize_script('wir-frontend', 'WIRData', $data);
 
         // Floating button hook (integration decides placement if needed).
         add_action('wp_footer', [__CLASS__, 'fab']);
