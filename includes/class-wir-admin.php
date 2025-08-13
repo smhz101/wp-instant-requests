@@ -38,9 +38,31 @@ class WIR_Admin {
 		return is_array( $items ) ? $items : array();
 	}
 
-	private static function save_thread( $id, $items ) {
-		update_post_meta( $id, '_wir_thread', array_values( $items ) );
-	}
+       private static function save_thread( $id, $items ) {
+               update_post_meta( $id, '_wir_thread', array_values( $items ) );
+       }
+
+       private static function render_status_badge( $status ) {
+               $colors = array(
+                       'open'    => '#2563eb',
+                       'replied' => '#059669',
+                       'closed'  => '#6b7280',
+               );
+               $icons  = array(
+                       'open'    => 'email-alt',
+                       'replied' => 'yes',
+                       'closed'  => 'no-alt',
+               );
+               $color  = $colors[ $status ] ?? '#2563eb';
+               $icon   = $icons[ $status ] ?? 'email-alt';
+
+               return sprintf(
+                       '<span class="wir-badge wir-status-badge" style="background:%1$s1a;color:%1$s"><span class="dashicons dashicons-%2$s"></span>%3$s</span>',
+                       esc_attr( $color ),
+                       esc_attr( $icon ),
+                       esc_html( $status )
+               );
+       }
 
 	public static function ajax_get_thread() {
 		check_ajax_referer( 'wir_admin_nonce', 'nonce' );
@@ -222,14 +244,17 @@ class WIR_Admin {
                                                                        <span class="wir-item-time"><?php echo esc_html( get_the_date( 'M j, Y H:i', $id ) ); ?></span>
                                                                </div>
                                                </div>
-                                               <div class="wir-item-sub">
-                                                       <?php if ( $topic ) : ?>
-                                                                               <span class="wir-badge"><?php echo esc_html( $topic ); ?></span>
-                                                               <?php endif; ?>
-                                                       <?php if ( $title ) : ?>
-                                                                               <span class="wir-dim">· <?php echo esc_html( $title ); ?></span>
-                                                               <?php endif; ?>
-                                               </div>
+                                                 <div class="wir-item-sub">
+                                                        <?php if ( $topic ) : ?>
+                                                                                <span class="wir-badge"><?php echo esc_html( $topic ); ?></span>
+                                                        <?php endif; ?>
+                                                        <?php if ( $title ) : ?>
+                                                                                <span class="wir-dim">· <?php echo esc_html( $title ); ?></span>
+                                                        <?php endif; ?>
+                                                        <?php if ( 'open' !== $status ) : ?>
+                                                                                <?php echo self::render_status_badge( $status ); ?>
+                                                        <?php endif; ?>
+                                                 </div>
                                                <div class="wir-item-excerpt"><?php echo esc_html( $excerpt ); ?></div>
                                </div>
                                <?php

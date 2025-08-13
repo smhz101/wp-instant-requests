@@ -31,14 +31,18 @@
 
   // Helpers
   function badge(status) {
-    const map = { open: '#2563eb', replied: '#059669', closed: '#6b7280' };
-    const color = map[status] || '#2563eb';
+    const colorMap = { open: '#2563eb', replied: '#059669', closed: '#6b7280' };
+    const iconMap = { open: 'email-alt', replied: 'yes', closed: 'no-alt' };
+    const color = colorMap[status] || '#2563eb';
+    const icon = iconMap[status] || 'email-alt';
     return (
       '<span class="wir-badge" style="background:' +
       color +
       '1a;color:' +
       color +
-      '">' +
+      '"><span class="dashicons dashicons-' +
+      icon +
+      '"></span>' +
       status +
       '</span>'
     );
@@ -92,6 +96,10 @@
       const who = m.type === 'out' ? 'admin' : 'user';
       const status = m.status ? '<div class="wir-msg-status">' + m.status + '</div>' : '';
       const ts = m.time ? new Date(m.time * 1000).toLocaleString() : '';
+      let body = $('<div/>').text(m.message || '').html();
+      if (m.type === 'out') {
+        body += '<span class="dashicons dashicons-email"></span>';
+      }
       $t.append(
         '<div class="wir-msg is-' +
           who +
@@ -103,9 +111,7 @@
           ts +
           '</div>' +
           '<div class="wir-msg-body">' +
-          $('<div/>')
-            .text(m.message || '')
-            .html() +
+          body +
           '</div>' +
           status +
           '</div>'
