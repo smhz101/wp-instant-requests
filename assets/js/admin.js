@@ -18,9 +18,13 @@
       // document.body.style.overflow = 'hidden';
     }
     setMailboxHeightVar();
-    const $first = $('.wir-item').first();
-    if ($first.length) {
-      lastKnownId = parseInt($first.data('id'), 10) || 0;
+    const ids = $('.wir-item')
+      .map(function () {
+        return parseInt($(this).data('id'), 10) || 0;
+      })
+      .get();
+    if (ids.length) {
+      lastKnownId = Math.max.apply(null, ids);
     }
   });
   window.addEventListener('resize', setMailboxHeightVar);
@@ -48,6 +52,33 @@
     $sub.find('.wir-status-badge').remove();
     if (status !== 'open') {
       $sub.append($(badge(status)).addClass('wir-status-badge'));
+    }
+  }
+
+  function placeItem($item) {
+    const $list = $('.wir-list-inner');
+    const time = parseInt($item.data('time'), 10) || 0;
+    if ($item.hasClass('is-pinned')) {
+      $list.prepend($item);
+      return;
+    }
+    let inserted = false;
+    const $unpinned = $list.children('.wir-item').not('.is-pinned');
+    $unpinned.each(function () {
+      const t = parseInt($(this).data('time'), 10) || 0;
+      if (!inserted && time > t) {
+        $(this).before($item);
+        inserted = true;
+        return false;
+      }
+    });
+    if (!inserted) {
+      const $lastPinned = $list.children('.wir-item.is-pinned').last();
+      if ($lastPinned.length) {
+        $lastPinned.after($item);
+      } else {
+        $list.append($item);
+      }
     }
   }
 
@@ -164,6 +195,50 @@
     fillPreviewFromServer(currentId);
   });
 
+  $doc.on('click', '.wir-pin', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const $item = $(this).closest('.wir-item');
+    const id = parseInt($item.data('id'), 10);
+    $.post(
+      WIRAdmin.ajax,
+      { action: 'wir_toggle_pin', nonce: WIRAdmin.nonce, request_id: id },
+      function (res) {
+        if (res && res.success) {
+          if (res.data.pinned) {
+            $item.addClass('is-pinned');
+          } else {
+            $item.removeClass('is-pinned');
+          }
+          placeItem($item);
+        }
+      }
+    );
+  });
+
+  $doc.on('click', '.wir-star', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const $icon = $(this);
+    const $item = $icon.closest('.wir-item');
+    const id = parseInt($item.data('id'), 10);
+    $.post(
+      WIRAdmin.ajax,
+      { action: 'wir_toggle_star', nonce: WIRAdmin.nonce, request_id: id },
+      function (res) {
+        if (res && res.success) {
+          if (res.data.starred) {
+            $item.addClass('is-starred');
+            $icon.removeClass('dashicons-star-empty').addClass('dashicons-star-filled');
+          } else {
+            $item.removeClass('is-starred');
+            $icon.removeClass('dashicons-star-filled').addClass('dashicons-star-empty');
+          }
+        }
+      }
+    );
+  });
+
   // Send reply
   $doc.on('click', '#wir-send-reply', function (e) {
     e.preventDefault();
@@ -238,9 +313,9 @@
       function (res) {
         if (res && res.success) {
           if (Array.isArray(res.data.items) && res.data.items.length) {
-            const $list = $('.wir-list-inner');
             res.data.items.forEach(function (html) {
-              $list.prepend(html);
+              const $item = $(html);
+              placeItem($item);
             });
             lastKnownId = parseInt(res.data.last_id, 10) || lastKnownId;
           }

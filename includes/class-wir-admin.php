@@ -149,6 +149,42 @@ class WIR_Admin {
                wp_send_json_success( array( 'unread' => self::unread_count() ) );
        }
 
+       public static function ajax_toggle_pin() {
+               if ( ! current_user_can( 'edit_wir_requests' ) ) {
+                       wp_send_json_error( 'denied', 403 );
+               }
+               check_ajax_referer( 'wir_admin_nonce', 'nonce' );
+               $id = absint( $_POST['request_id'] ?? 0 );
+               if ( ! $id ) {
+                       wp_send_json_error( 'Invalid', 400 );
+               }
+               $curr = get_post_meta( $id, '_wir_pinned', true );
+               if ( $curr ) {
+                       delete_post_meta( $id, '_wir_pinned' );
+               } else {
+                       update_post_meta( $id, '_wir_pinned', 1 );
+               }
+               wp_send_json_success( array( 'pinned' => empty( $curr ) ) );
+       }
+
+       public static function ajax_toggle_star() {
+               if ( ! current_user_can( 'edit_wir_requests' ) ) {
+                       wp_send_json_error( 'denied', 403 );
+               }
+               check_ajax_referer( 'wir_admin_nonce', 'nonce' );
+               $id = absint( $_POST['request_id'] ?? 0 );
+               if ( ! $id ) {
+                       wp_send_json_error( 'Invalid', 400 );
+               }
+               $curr = get_post_meta( $id, '_wir_starred', true );
+               if ( $curr ) {
+                       delete_post_meta( $id, '_wir_starred' );
+               } else {
+                       update_post_meta( $id, '_wir_starred', 1 );
+               }
+               wp_send_json_success( array( 'starred' => empty( $curr ) ) );
+       }
+
        private static function render_list_item( $id ) {
                        $pid           = (int) get_post_meta( $id, '_wir_product_id', true );
                        $topic         = get_post_meta( $id, '_wir_topic', true );
@@ -159,19 +195,32 @@ class WIR_Admin {
                        $assignee_id   = (int) get_post_meta( $id, '_wir_assigned', true );
                        $assignee_user = $assignee_id ? get_user_by( 'id', $assignee_id ) : null;
                        $assignee_name = $assignee_user ? $assignee_user->display_name : '';
+                       $pinned        = (int) get_post_meta( $id, '_wir_pinned', true );
+                       $starred       = (int) get_post_meta( $id, '_wir_starred', true );
                        $excerpt       = wp_html_excerpt( wp_strip_all_tags( $msg ), 140, '…' );
                        $title         = get_the_title( $pid );
                        $classes       = 'wir-item';
                        if ( 'unread' === $status ) {
                                $classes .= ' is-unread';
                        }
+                       if ( $pinned ) {
+                               $classes .= ' is-pinned';
+                       }
+                       if ( $starred ) {
+                               $classes .= ' is-starred';
+                       }
+                       $time = get_post_time( 'U', true, $id );
 
                        ob_start();
                ?>
-                               <div class="<?php echo esc_attr( $classes ); ?>" data-id="<?php echo esc_attr( $id ); ?>" data-name="<?php echo esc_attr( $name ); ?>" data-email="<?php echo esc_attr( $email ); ?>" data-topic="<?php echo esc_attr( $topic ); ?>" data-object-id="<?php echo esc_attr( $pid ); ?>" data-object-title="<?php echo esc_attr( $title ); ?>" data-status="<?php echo esc_attr( $status ); ?>" data-assignee_name="<?php echo esc_attr( $assignee_name ); ?>" data-content="<?php echo esc_attr( wp_strip_all_tags( $msg ) ); ?>">
+                               <div class="<?php echo esc_attr( $classes ); ?>" data-id="<?php echo esc_attr( $id ); ?>" data-time="<?php echo esc_attr( $time ); ?>" data-name="<?php echo esc_attr( $name ); ?>" data-email="<?php echo esc_attr( $email ); ?>" data-topic="<?php echo esc_attr( $topic ); ?>" data-object-id="<?php echo esc_attr( $pid ); ?>" data-object-title="<?php echo esc_attr( $title ); ?>" data-status="<?php echo esc_attr( $status ); ?>" data-assignee_name="<?php echo esc_attr( $assignee_name ); ?>" data-content="<?php echo esc_attr( wp_strip_all_tags( $msg ) ); ?>">
                                                <div class="wir-item-head">
                                                                <strong class="wir-item-name"><?php echo esc_html( $name ?: __( 'Guest', 'wp-instant-requests' ) ); ?></strong>
-                                                               <span class="wir-item-time"><?php echo esc_html( get_the_date( 'M j, Y H:i', $id ) ); ?></span>
+                                                               <div class="wir-item-head-right">
+                                                                       <span class="wir-pin dashicons dashicons-admin-post" title="<?php esc_attr_e( 'Pin', 'wp-instant-requests' ); ?>"></span>
+                                                                       <span class="wir-star dashicons <?php echo $starred ? 'dashicons-star-filled' : 'dashicons-star-empty'; ?>" title="<?php esc_attr_e( 'Star', 'wp-instant-requests' ); ?>"></span>
+                                                                       <span class="wir-item-time"><?php echo esc_html( get_the_date( 'M j, Y H:i', $id ) ); ?></span>
+                                                               </div>
                                                </div>
                                                <div class="wir-item-sub">
                                                        <?php if ( $topic ) : ?>
@@ -215,8 +264,11 @@ class WIR_Admin {
                                array(
                                        'post_type'      => WIR_Plugin::CPT,
                                        'posts_per_page' => 20,
-                                       'orderby'        => 'date',
-                                       'order'          => 'DESC',
+                                       'meta_key'       => '_wir_pinned',
+                                       'orderby'        => array(
+                                               'meta_value_num' => 'DESC',
+                                               'date'           => 'DESC',
+                                       ),
                                )
                        );
                        $items  = array();
@@ -395,15 +447,18 @@ class WIR_Admin {
 		$paged  = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
 
 		// Build query
-		$args = array(
-			'post_type'      => 'wir_request',
-			'post_status'    => 'any',
-			'posts_per_page' => 20,
-			'paged'          => $paged,
-			'orderby'        => 'date',
-			'order'          => 'DESC',
-			's'              => $search,
-		);
+               $args = array(
+                       'post_type'      => 'wir_request',
+                       'post_status'    => 'any',
+                       'posts_per_page' => 20,
+                       'paged'          => $paged,
+                       's'              => $search,
+                       'meta_key'       => '_wir_pinned',
+                       'orderby'        => array(
+                               'meta_value_num' => 'DESC',
+                               'date'           => 'DESC',
+                       ),
+               );
 		if ( $topic !== '' ) {
 			$args['meta_query'] = array(
 				array(
@@ -487,62 +542,13 @@ class WIR_Admin {
 			<div class="wir-mailbox">
 				<aside class="wir-list">
 					<div class="wir-list-inner">
-					<?php if ( $q->have_posts() ) : ?>
-						<?php
-						while ( $q->have_posts() ) :
-							$q->the_post();
-							$pid           = (int) get_post_meta( get_the_ID(), '_wir_product_id', true );
-							$topic         = get_post_meta( get_the_ID(), '_wir_topic', true );
-							$name          = get_post_meta( get_the_ID(), '_wir_name', true );
-							$email         = get_post_meta( get_the_ID(), '_wir_email', true );
-							$msg           = get_the_content( null, false, get_the_ID() );
-							$status        = get_post_meta( get_the_ID(), '_wir_status', true ) ?: 'open';
-							$assignee_id   = (int) get_post_meta( get_the_ID(), '_wir_assigned', true );
-							$assignee_user = $assignee_id ? get_user_by( 'id', $assignee_id ) : null;
-							$assignee_name = $assignee_user ? $assignee_user->display_name : '';
-
-							$excerpt = wp_html_excerpt( wp_strip_all_tags( $msg ), 140, '…' );
-							$title   = get_the_title( $pid );
-							?>
-                                               <?php
-                                               $classes = 'wir-item';
-                                               if ( 'unread' === $status ) {
-                                                       $classes .= ' is-unread';
-                                               }
-                                               ?>
-                                               <div class="<?php echo esc_attr( $classes ); ?>"
-                                                               data-id="<?php echo esc_attr( get_the_ID() ); ?>"
-                                                               data-name="<?php echo esc_attr( $name ); ?>"
-                                                               data-email="<?php echo esc_attr( $email ); ?>"
-                                                               data-topic="<?php echo esc_attr( $topic ); ?>"
-                                                               data-object-id="<?php echo esc_attr( $pid ); ?>"
-                                                               data-object-title="<?php echo esc_attr( $title ); ?>"
-                                                               data-status="<?php echo esc_attr( $status ); ?>"
-                                                               data-assignee_name="<?php echo esc_attr( $assignee_name ); ?>"
-                                                               data-content="<?php echo esc_attr( wp_strip_all_tags( $msg ) ); ?>">
-							<div class="wir-item-head">
-								<strong class="wir-item-name"><?php echo esc_html( $name ?: __( 'Guest', 'wp-instant-requests' ) ); ?></strong>
-								<span class="wir-item-time"><?php echo esc_html( get_the_date( 'M j, Y H:i' ) ); ?></span>
-							</div>
-							<div class="wir-item-sub">
-								<?php
-								if ( $topic ) :
-									?>
-									<span class="wir-badge"><?php echo esc_html( $topic ); ?></span><?php endif; ?>
-								<?php
-								if ( $title ) :
-									?>
-									<span class="wir-dim">· <?php echo esc_html( $title ); ?></span><?php endif; ?>
-							</div>
-							<div class="wir-item-excerpt"><?php echo esc_html( $excerpt ); ?></div>
-						</div>
-						<?php endwhile; else : ?>
-						<div class="wir-empty"><?php esc_html_e( 'No requests found.', 'wp-instant-requests' ); ?></div>
-							<?php
-					endif;
-						wp_reset_postdata();
-						?>
-					</div>
+                                       <?php if ( $q->have_posts() ) : ?>
+                                               <?php while ( $q->have_posts() ) : $q->the_post(); ?>
+                                                       <?php echo self::render_list_item( get_the_ID() ); ?>
+                                               <?php endwhile; else : ?>
+                                               <div class="wir-empty"><?php esc_html_e( 'No requests found.', 'wp-instant-requests' ); ?></div>
+                                               <?php endif; wp_reset_postdata(); ?>
+                                       </div>
 	
 					<?php
 					$total = (int) $q->max_num_pages;
@@ -908,3 +914,5 @@ class WIR_Admin {
 add_action( 'save_post_wir_request', array( WIR_Admin::class, 'refresh_menu_badge' ) );
 add_action( 'transition_post_status', array( WIR_Admin::class, 'transition_menu_badge' ), 10, 3 );
 add_action( 'wp_ajax_wir_mark_read', array( WIR_Admin::class, 'ajax_mark_read' ) );
+add_action( 'wp_ajax_wir_toggle_pin', array( WIR_Admin::class, 'ajax_toggle_pin' ) );
+add_action( 'wp_ajax_wir_toggle_star', array( WIR_Admin::class, 'ajax_toggle_star' ) );
