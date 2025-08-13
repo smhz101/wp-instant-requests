@@ -56,35 +56,36 @@
     const $t = $('.wir-thread').empty();
     if (!Array.isArray(items) || !items.length) {
       $t.append('<div class="wir-empty">' + WIRAdmin.i18n.no_messages + '</div>');
-      return;
+    } else {
+      items.forEach((m, i) => {
+        const who = m.type === 'out' ? 'admin' : 'user';
+        const status = m.status ? '<div class="wir-msg-status">' + m.status + '</div>' : '';
+        const ts = m.time ? new Date(m.time * 1000).toLocaleString() : '';
+        let body = $('<div/>')
+          .text(m.message || '')
+          .html();
+        if (m.type === 'out') {
+          body += '<span class="dashicons dashicons-email"></span>';
+        }
+        $t.append(
+          '<div class="wir-msg is-' +
+            who +
+            (i === 0 ? ' is-first' : '') +
+            '">' +
+            '<div class="wir-msg-head">' +
+            (who === 'admin' ? 'You' : 'User') +
+            ' · ' +
+            ts +
+            '</div>' +
+            '<div class="wir-msg-body">' +
+            body +
+            '</div>' +
+            status +
+            '</div>'
+        );
+      });
     }
-    items.forEach((m, i) => {
-      const who = m.type === 'out' ? 'admin' : 'user';
-      const status = m.status ? '<div class="wir-msg-status">' + m.status + '</div>' : '';
-      const ts = m.time ? new Date(m.time * 1000).toLocaleString() : '';
-      let body = $('<div/>')
-        .text(m.message || '')
-        .html();
-      if (m.type === 'out') {
-        body += '<span class="dashicons dashicons-email"></span>';
-      }
-      $t.append(
-        '<div class="wir-msg is-' +
-          who +
-          (i === 0 ? ' is-first' : '') +
-          '">' +
-          '<div class="wir-msg-head">' +
-          (who === 'admin' ? 'You' : 'User') +
-          ' · ' +
-          ts +
-          '</div>' +
-          '<div class="wir-msg-body">' +
-          body +
-          '</div>' +
-          status +
-          '</div>'
-      );
-    });
+    $t.scrollTop($t[0].scrollHeight);
   }
 
   function fillPreviewFromServer(id) {
