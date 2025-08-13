@@ -362,26 +362,28 @@ class WIR_Admin {
 		check_ajax_referer( 'wir_admin_nonce', 'nonce' );
 
 		$last_id = absint( $_POST['last_id'] ?? 0 );
-
+		
+		// If there's no last seen ID, skip querying posts and just return unread count.
+		if ( ! $last_id ) {
+		$unread = self::unread_count();
+		wp_send_json_success( array( 'unread' => $unread ) );
+		}
+		
 		$args = array(
-			'post_type'      => WIR_Plugin::CPT,
-			'posts_per_page' => -1,
-			'orderby'        => 'ID',
-			'order'          => 'ASC',
+		'post_type'      => WIR_Plugin::CPT,
+		'posts_per_page' => 50,
+		'orderby'        => 'ID',
+		'order'          => 'ASC',
 		);
-
-		if ( $last_id ) {
-			add_filter( 'posts_where', $where_filter = function ( $where ) use ( $last_id ) {
-				global $wpdb;
-				return $where . $wpdb->prepare( " AND {$wpdb->posts}.ID > %d", $last_id );
-			});
-		}
-
+		
+		add_filter( 'posts_where', $where_filter = function ( $where ) use ( $last_id ) {
+		global $wpdb;
+		return $where . $wpdb->prepare( " AND {$wpdb->posts}.ID > %d", $last_id );
+		} );
+		
 		$q = new WP_Query( $args );
-
-		if ( $last_id ) {
-			remove_filter( 'posts_where', $where_filter );
-		}
+		
+		remove_filter( 'posts_where', $where_filter );
 
 		$items  = array();
 		$max_id = $last_id;
