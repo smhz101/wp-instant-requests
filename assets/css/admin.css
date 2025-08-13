@@ -77,12 +77,28 @@
 	border-bottom: 0;
 }
 .wir-item-head {
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+}
+.wir-item-head-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+}
+.wir-pin,
+.wir-star {
+        color: #9ca3af;
+        cursor: pointer;
+}
+.wir-item.is-pinned .wir-pin {
+        color: #2563eb;
+}
+.wir-item.is-starred .wir-star {
+        color: #d97706;
 }
 .wir-item-name {
-	font-weight: 700;
+        font-weight: 700;
 }
 .wir-item-time {
 	color: #6b7280;
