@@ -438,7 +438,8 @@ class WIR_Admin {
 
 	/** Load CSS/JS only on our pages */
 	public static function enqueue_admin_assets() {
-	        wp_enqueue_script( 'wir-admin-badge', WIR_URL . 'assets/js/admin-badge.js', array( 'jquery' ), WIR_VERSION, true );
+		wp_enqueue_script( 'wir-utils', WIR_URL . 'assets/js/wir-utils.js', array( 'jquery' ), WIR_VERSION, true );
+		wp_enqueue_script( 'wir-admin-badge', WIR_URL . 'assets/js/admin-badge.js', array( 'jquery', 'wir-utils' ), WIR_VERSION, true );
 
 	        $uid       = get_current_user_id();
 	        $last_seen = $uid ? (int) get_user_meta( $uid, '_wir_last_seen_id', true ) : 0;
@@ -459,7 +460,7 @@ class WIR_Admin {
 		}
 
 		wp_enqueue_style( 'wir-admin', WIR_URL . 'assets/css/admin.css', array(), WIR_VERSION );
-	       wp_enqueue_script( 'wir-admin', WIR_URL . 'assets/js/admin.js', array( 'jquery', 'wir-admin-badge' ), WIR_VERSION, true );
+		wp_enqueue_script( 'wir-admin', WIR_URL . 'assets/js/admin.js', array( 'jquery', 'wir-utils', 'wir-admin-badge' ), WIR_VERSION, true );
 
 		wp_localize_script(
 			'wir-admin',
