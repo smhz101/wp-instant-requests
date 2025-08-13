@@ -158,12 +158,12 @@ class WIR_Admin {
 
        public static function ajax_mark_read() {
                if ( ! current_user_can( 'edit_wir_requests' ) ) {
-                       wp_send_json_error( 'denied', 403 );
+                       wp_send_json_error( __( 'Permission denied.', 'wp-instant-requests' ), 403 );
                }
                check_ajax_referer( 'wir_admin_nonce', 'nonce' );
                $id = absint( $_POST['request_id'] ?? 0 );
                if ( ! $id ) {
-                       wp_send_json_error( 'Invalid', 400 );
+                       wp_send_json_error( __( 'Invalid request.', 'wp-instant-requests' ), 400 );
                }
                if ( 'unread' === get_post_meta( $id, '_wir_status', true ) ) {
                        update_post_meta( $id, '_wir_status', 'open' );
@@ -471,19 +471,20 @@ class WIR_Admin {
 		$topic  = isset( $_GET['topic'] ) ? sanitize_text_field( wp_unslash( $_GET['topic'] ) ) : '';
 		$paged  = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
 
-		// Build query
-               $args = array(
-                       'post_type'      => 'wir_request',
-                       'post_status'    => 'any',
-                       'posts_per_page' => 20,
-                       'paged'          => $paged,
-                       's'              => $search,
-                       'meta_key'       => '_wir_pinned',
-                       'orderby'        => array(
-                               'meta_value_num' => 'DESC',
-                               'date'           => 'DESC',
-                       ),
-               );
+// Build query
+       $args = array(
+               'post_type'      => 'wir_request',
+               // Explicitly list core statuses to avoid empty results on some setups.
+               'post_status'    => array( 'publish', 'pending', 'draft', 'future', 'private' ),
+               'posts_per_page' => 20,
+               'paged'          => $paged,
+               's'              => $search,
+               'meta_key'       => '_wir_pinned',
+               'orderby'        => array(
+                       'meta_value_num' => 'DESC',
+                       'date'           => 'DESC',
+               ),
+       );
 		if ( $topic !== '' ) {
 			$args['meta_query'] = array(
 				array(

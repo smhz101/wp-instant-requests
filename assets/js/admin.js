@@ -7,16 +7,15 @@
 
   // Set mailbox height based on available viewport space
   function setMailboxHeightVar() {
-    var grid = document.querySelector('.wir-mailbox');
+    const grid = document.querySelector('.wir-mailbox');
     if (!grid) return;
-    var h = window.innerHeight - grid.getBoundingClientRect().top - 20;
+    const footer = document.getElementById('wpfooter');
+    const footerH = footer ? footer.offsetHeight : 0;
+    const h = window.innerHeight - grid.getBoundingClientRect().top - footerH;
     grid.style.height = h + 'px';
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    if (new URLSearchParams(window.location.search).get('page') === 'wir') {
-      // document.body.style.overflow = 'hidden';
-    }
     setMailboxHeightVar();
     const ids = $('.wir-item')
       .map(function () {
@@ -178,6 +177,7 @@
       $badge.remove();
     }
   }
+  window.updateUnreadBadge = updateUnreadBadge;
 
   // Select item
   $doc.on('click', '.wir-item', function () {
@@ -185,20 +185,18 @@
     $('.wir-item').removeClass('is-active');
     $item.addClass('is-active');
     currentId = parseInt($item.data('id'), 10);
-    if ($item.hasClass('is-unread')) {
-      $.post(
-        WIRAdmin.ajax,
-        { action: 'wir_mark_read', nonce: WIRAdmin.nonce, request_id: currentId },
-        function (res) {
-          if (res && res.success) {
-            $item.removeClass('is-unread');
-            if (typeof res.data.unread !== 'undefined') {
-              updateUnreadBadge(parseInt(res.data.unread, 10) || 0);
-            }
+    $.post(
+      WIRAdmin.ajax,
+      { action: 'wir_mark_read', nonce: WIRAdmin.nonce, request_id: currentId },
+      function (res) {
+        if (res && res.success) {
+          $item.removeClass('is-unread');
+          if (typeof res.data.unread !== 'undefined') {
+            updateUnreadBadge(parseInt(res.data.unread, 10) || 0);
           }
         }
-      );
-    }
+      }
+    );
     fillPreviewFromServer(currentId);
   });
 
