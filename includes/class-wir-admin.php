@@ -471,19 +471,21 @@ class WIR_Admin {
 		$topic  = isset( $_GET['topic'] ) ? sanitize_text_field( wp_unslash( $_GET['topic'] ) ) : '';
 		$paged  = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
 
-		// Build query
-		$args = array(
-			'post_type'      => 'wir_request',
-			'post_status'    => 'any',
-			'posts_per_page' => 20,
-			'paged'          => $paged,
-			's'              => $search,
-			'meta_key'       => '_wir_pinned',
-			'orderby'        => array(
-				'meta_value_num' => 'DESC',
-				'date'           => 'DESC',
-			),
-		);
+
+    // Build query
+     $args = array(
+             'post_type'      => 'wir_request',
+             // Explicitly list core statuses to avoid empty results on some setups.
+             'post_status'    => array( 'publish', 'pending', 'draft', 'future', 'private' ),
+             'posts_per_page' => 20,
+             'paged'          => $paged,
+             's'              => $search,
+             'meta_key'       => '_wir_pinned',
+             'orderby'        => array(
+                     'meta_value_num' => 'DESC',
+                     'date'           => 'DESC',
+             ),
+     );
 		if ( $topic !== '' ) {
 			$args['meta_query'] = array(
 				array(

@@ -7,16 +7,15 @@
 
   // Set mailbox height based on available viewport space
   function setMailboxHeightVar() {
-    var grid = document.querySelector('.wir-mailbox');
+    const grid = document.querySelector('.wir-mailbox');
     if (!grid) return;
-    var h = window.innerHeight - grid.getBoundingClientRect().top - 20;
+    const footer = document.getElementById('wpfooter');
+    const footerH = footer ? footer.offsetHeight : 0;
+    const h = window.innerHeight - grid.getBoundingClientRect().top - footerH;
     grid.style.height = h + 'px';
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    if (new URLSearchParams(window.location.search).get('page') === 'wir') {
-      // document.body.style.overflow = 'hidden';
-    }
     setMailboxHeightVar();
     const ids = $('.wir-item')
       .map(function () {

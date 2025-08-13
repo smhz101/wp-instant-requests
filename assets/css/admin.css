@@ -33,11 +33,12 @@
 	--wir-top: 150px;
 } /* fallback */
 .wir-mailbox {
-	display: grid;
-	grid-template-columns: 420px 1fr;
-	gap: 14px;
-	min-height: calc(100vh - var(--wir-top));
-	/* margin-right: 15px; */
+        display: grid;
+        grid-template-columns: 420px 1fr;
+        gap: 14px;
+        /* Occupy available viewport height minus footer; JS refines this inline. */
+        height: calc(100vh - var(--wir-top) - 32px);
+        /* margin-right: 15px; */
 }
 
 /* --- List (left) --- */
