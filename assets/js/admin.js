@@ -15,9 +15,9 @@
     grid.style.height = h + 'px';
   }
 
-    document.addEventListener('DOMContentLoaded', function () {
-      setMailboxHeightVar();
-    });
+  document.addEventListener('DOMContentLoaded', function () {
+    setMailboxHeightVar();
+  });
   window.addEventListener('resize', setMailboxHeightVar);
 
   // Helpers
@@ -216,6 +216,7 @@
           $('#wir-reply-text').val('');
           renderThread(res.data.items || []);
           updateActiveItemStatus('replied');
+          fillPreviewFromServer(currentId);
         } else {
           $status.css('color', '#b91c1c').text((res && res.data) || WIRAdmin.i18n.error);
         }
@@ -272,6 +273,7 @@
         if (res && res.success) {
           $('.wir-preview-status-badge').html(badge(res.data.status));
           updateActiveItemStatus(res.data.status);
+          fillPreviewFromServer(currentId);
         }
       }
     );
@@ -288,6 +290,7 @@
         if (res && res.success) {
           $('.wir-preview-assignee').text(WIRAdmin.i18n.assignee + ': ' + res.data.name);
           $('.wir-item.is-active').attr('data-assignee_name', res.data.name);
+          fillPreviewFromServer(currentId);
         }
       }
     );
