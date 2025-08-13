@@ -46,6 +46,7 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     scanInitialMaxId();
+    poll();
     setInterval(poll, 15000);
   });
 })(jQuery);
