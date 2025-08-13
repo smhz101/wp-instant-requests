@@ -220,9 +220,20 @@ class WIR_Admin {
 
 	/** Register menus (Top: Requests; Subs: All Requests, Settings) */
 	public static function menus() {
+		$count = wp_count_posts( 'wir_request' );
+		$open  = isset( $count->open ) ? (int) $count->open : 0;
+		$title = __( 'Requests', 'wp-instant-requests' );
+
+		if ( $open > 0 ) {
+			$title .= sprintf(
+				'<span class="update-plugins count-%1$d"><span class="plugin-count">%1$d</span></span>',
+				$open
+			);
+		}
+
 		add_menu_page(
 			__( 'Requests', 'wp-instant-requests' ),
-			__( 'Requests', 'wp-instant-requests' ),
+			$title,
 			'edit_wir_requests',
 			'wir',
 			array( __CLASS__, 'page_requests' ), // Custom mailbox page at top-level
@@ -252,6 +263,53 @@ class WIR_Admin {
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_admin_assets' ) );
 		// AJAX: admin reply
 		add_action( 'wp_ajax_wir_admin_reply', array( __CLASS__, 'ajax_admin_reply' ) );
+	}
+
+	private static function enqueue_menu_refresh() {
+		add_action( 'admin_footer', array( __CLASS__, 'print_menu_refresh_script' ) );
+	}
+
+	public static function refresh_menu_badge() {
+		self::enqueue_menu_refresh();
+	}
+
+	public static function transition_menu_badge( $new, $old, $post ) {
+		if ( 'wir_request' !== $post->post_type ) {
+						return;
+		}
+		self::enqueue_menu_refresh();
+	}
+
+	public static function print_menu_refresh_script() {
+		$count = wp_count_posts( 'wir_request' );
+		$open  = isset( $count->open ) ? (int) $count->open : 0;
+		?>
+		<script>
+		(function(){
+			if ( typeof updateUnreadBadge === 'function' ) {
+				updateUnreadBadge( <?php echo $open; ?> );
+				return;
+			}
+			var menu  = document.querySelector('#toplevel_page_wir .wp-menu-name');
+			if ( ! menu ) { return; }
+			var badge = menu.querySelector('.update-plugins');
+			var count = <?php echo $open; ?>;
+			if ( count > 0 ) {
+				if ( ! badge ) {
+					badge = document.createElement('span');
+					badge.className = 'update-plugins count-' + count;
+					badge.innerHTML = '<span class="plugin-count">' + count + '</span>';
+					menu.appendChild(badge);
+				} else {
+					badge.className = 'update-plugins count-' + count;
+					badge.querySelector('.plugin-count').textContent = count;
+				}
+			} else if ( badge ) {
+				badge.remove();
+			}
+		})();
+		</script>
+		<?php
 	}
 
 	/** Load CSS/JS only on our pages */
