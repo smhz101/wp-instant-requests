@@ -57,7 +57,7 @@ class WIR_Ajax {
 				),
 			)
 		);
-               update_post_meta( $post_id, '_wir_status', 'unread' );
+				update_post_meta( $post_id, '_wir_status', 'unread' );
 
 		// Optional email notify.
 		$o = WIR_Plugin::settings();
