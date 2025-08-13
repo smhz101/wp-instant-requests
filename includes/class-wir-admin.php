@@ -38,31 +38,31 @@ class WIR_Admin {
 		return is_array( $items ) ? $items : array();
 	}
 
-       private static function save_thread( $id, $items ) {
-               update_post_meta( $id, '_wir_thread', array_values( $items ) );
-       }
+	private static function save_thread( $id, $items ) {
+			update_post_meta( $id, '_wir_thread', array_values( $items ) );
+	}
 
-       private static function render_status_badge( $status ) {
-               $colors = array(
-                       'open'    => '#2563eb',
-                       'replied' => '#059669',
-                       'closed'  => '#6b7280',
-               );
-               $icons  = array(
-                       'open'    => 'email-alt',
-                       'replied' => 'yes',
-                       'closed'  => 'no-alt',
-               );
-               $color  = $colors[ $status ] ?? '#2563eb';
-               $icon   = $icons[ $status ] ?? 'email-alt';
+	private static function render_status_badge( $status ) {
+			$colors = array(
+				'open'    => '#2563eb',
+				'replied' => '#059669',
+				'closed'  => '#6b7280',
+			);
+			$icons  = array(
+				'open'    => 'email-alt',
+				'replied' => 'yes',
+				'closed'  => 'no-alt',
+			);
+			$color  = $colors[ $status ] ?? '#2563eb';
+			$icon   = $icons[ $status ] ?? 'email-alt';
 
-               return sprintf(
-                       '<span class="wir-badge wir-status-badge" style="background:%1$s1a;color:%1$s"><span class="dashicons dashicons-%2$s"></span>%3$s</span>',
-                       esc_attr( $color ),
-                       esc_attr( $icon ),
-                       esc_html( $status )
-               );
-       }
+			return sprintf(
+				'<span class="wir-badge wir-status-badge" style="background:%1$s1a;color:%1$s"><span class="dashicons dashicons-%2$s"></span>%3$s</span>',
+				esc_attr( $color ),
+				esc_attr( $icon ),
+				esc_html( $status )
+			);
+	}
 
 	public static function ajax_get_thread() {
 		check_ajax_referer( 'wir_admin_nonce', 'nonce' );
@@ -144,190 +144,190 @@ class WIR_Admin {
 		wp_send_json_success( array( 'status' => $next ) );
 	}
 
-       public static function ajax_assign_me() {
-               if ( ! current_user_can( 'edit_wir_requests' ) ) {
-                               wp_send_json_error( 'denied', 403 );
-               }
-                       check_ajax_referer( 'wir_admin_nonce', 'nonce' );
-                       $id  = absint( $_POST['request_id'] ?? 0 );
-                       $uid = get_current_user_id();
-                       update_post_meta( $id, '_wir_assigned', $uid );
-                       $u = get_user_by( 'id', $uid );
-                       wp_send_json_success( array( 'name' => $u ? $u->display_name : '' ) );
-       }
+	public static function ajax_assign_me() {
+		if ( ! current_user_can( 'edit_wir_requests' ) ) {
+						wp_send_json_error( 'denied', 403 );
+		}
+					check_ajax_referer( 'wir_admin_nonce', 'nonce' );
+					$id  = absint( $_POST['request_id'] ?? 0 );
+					$uid = get_current_user_id();
+					update_post_meta( $id, '_wir_assigned', $uid );
+					$u = get_user_by( 'id', $uid );
+					wp_send_json_success( array( 'name' => $u ? $u->display_name : '' ) );
+	}
 
-       public static function ajax_mark_read() {
-               if ( ! current_user_can( 'edit_wir_requests' ) ) {
-                       wp_send_json_error( __( 'Permission denied.', 'wp-instant-requests' ), 403 );
-               }
-               check_ajax_referer( 'wir_admin_nonce', 'nonce' );
-               $id = absint( $_POST['request_id'] ?? 0 );
-               if ( ! $id ) {
-                       wp_send_json_error( __( 'Invalid request.', 'wp-instant-requests' ), 400 );
-               }
-               if ( 'unread' === get_post_meta( $id, '_wir_status', true ) ) {
-                       update_post_meta( $id, '_wir_status', 'open' );
-               }
-               wp_send_json_success( array( 'unread' => self::unread_count() ) );
-       }
+	public static function ajax_mark_read() {
+		if ( ! current_user_can( 'edit_wir_requests' ) ) {
+				wp_send_json_error( __( 'Permission denied.', 'wp-instant-requests' ), 403 );
+		}
+			check_ajax_referer( 'wir_admin_nonce', 'nonce' );
+			$id = absint( $_POST['request_id'] ?? 0 );
+		if ( ! $id ) {
+					wp_send_json_error( __( 'Invalid request.', 'wp-instant-requests' ), 400 );
+		}
+		if ( 'unread' === get_post_meta( $id, '_wir_status', true ) ) {
+					update_post_meta( $id, '_wir_status', 'open' );
+		}
+				wp_send_json_success( array( 'unread' => self::unread_count() ) );
+	}
 
-       public static function ajax_toggle_pin() {
-               if ( ! current_user_can( 'edit_wir_requests' ) ) {
-                       wp_send_json_error( 'denied', 403 );
-               }
-               check_ajax_referer( 'wir_admin_nonce', 'nonce' );
-               $id = absint( $_POST['request_id'] ?? 0 );
-               if ( ! $id ) {
-                       wp_send_json_error( 'Invalid', 400 );
-               }
-               $curr = get_post_meta( $id, '_wir_pinned', true );
-               if ( $curr ) {
-                       delete_post_meta( $id, '_wir_pinned' );
-               } else {
-                       update_post_meta( $id, '_wir_pinned', 1 );
-               }
-               wp_send_json_success( array( 'pinned' => empty( $curr ) ) );
-       }
-
-       public static function ajax_toggle_star() {
-               if ( ! current_user_can( 'edit_wir_requests' ) ) {
-                       wp_send_json_error( 'denied', 403 );
-               }
-               check_ajax_referer( 'wir_admin_nonce', 'nonce' );
-               $id = absint( $_POST['request_id'] ?? 0 );
-               if ( ! $id ) {
-                       wp_send_json_error( 'Invalid', 400 );
-               }
-               $curr = get_post_meta( $id, '_wir_starred', true );
-               if ( $curr ) {
-                       delete_post_meta( $id, '_wir_starred' );
-               } else {
-                       update_post_meta( $id, '_wir_starred', 1 );
-               }
-               wp_send_json_success( array( 'starred' => empty( $curr ) ) );
-       }
-
-       private static function render_list_item( $id ) {
-                       $pid           = (int) get_post_meta( $id, '_wir_product_id', true );
-                       $topic         = get_post_meta( $id, '_wir_topic', true );
-                       $name          = get_post_meta( $id, '_wir_name', true );
-                       $email         = get_post_meta( $id, '_wir_email', true );
-                       $msg           = get_post_field( 'post_content', $id );
-                       $status        = get_post_meta( $id, '_wir_status', true ) ?: 'open';
-                       $assignee_id   = (int) get_post_meta( $id, '_wir_assigned', true );
-                       $assignee_user = $assignee_id ? get_user_by( 'id', $assignee_id ) : null;
-                       $assignee_name = $assignee_user ? $assignee_user->display_name : '';
-                       $pinned        = (int) get_post_meta( $id, '_wir_pinned', true );
-                       $starred       = (int) get_post_meta( $id, '_wir_starred', true );
-                       $excerpt       = wp_html_excerpt( wp_strip_all_tags( $msg ), 140, '…' );
-                       $title         = get_the_title( $pid );
-                       $classes       = 'wir-item';
-                       if ( 'unread' === $status ) {
-                               $classes .= ' is-unread';
-                       }
-                       if ( $pinned ) {
-                               $classes .= ' is-pinned';
-                       }
-                       if ( $starred ) {
-                               $classes .= ' is-starred';
-                       }
-                       $time = get_post_time( 'U', true, $id );
-
-                       ob_start();
-               ?>
-                               <div class="<?php echo esc_attr( $classes ); ?>" data-id="<?php echo esc_attr( $id ); ?>" data-time="<?php echo esc_attr( $time ); ?>" data-name="<?php echo esc_attr( $name ); ?>" data-email="<?php echo esc_attr( $email ); ?>" data-topic="<?php echo esc_attr( $topic ); ?>" data-object-id="<?php echo esc_attr( $pid ); ?>" data-object-title="<?php echo esc_attr( $title ); ?>" data-status="<?php echo esc_attr( $status ); ?>" data-assignee_name="<?php echo esc_attr( $assignee_name ); ?>" data-content="<?php echo esc_attr( wp_strip_all_tags( $msg ) ); ?>">
-                                               <div class="wir-item-head">
-                                                               <strong class="wir-item-name"><?php echo esc_html( $name ?: __( 'Guest', 'wp-instant-requests' ) ); ?></strong>
-                                                               <div class="wir-item-head-right">
-                                                                       <span class="wir-pin dashicons dashicons-admin-post" title="<?php esc_attr_e( 'Pin', 'wp-instant-requests' ); ?>"></span>
-                                                                       <span class="wir-star dashicons <?php echo $starred ? 'dashicons-star-filled' : 'dashicons-star-empty'; ?>" title="<?php esc_attr_e( 'Star', 'wp-instant-requests' ); ?>"></span>
-                                                                       <span class="wir-item-time"><?php echo esc_html( get_the_date( 'M j, Y H:i', $id ) ); ?></span>
-                                                               </div>
-                                               </div>
-                                                 <div class="wir-item-sub">
-                                                        <?php if ( $topic ) : ?>
-                                                                                <span class="wir-badge"><?php echo esc_html( $topic ); ?></span>
-                                                        <?php endif; ?>
-                                                        <?php if ( $title ) : ?>
-                                                                                <span class="wir-dim">· <?php echo esc_html( $title ); ?></span>
-                                                        <?php endif; ?>
-                                                        <?php if ( 'open' !== $status ) : ?>
-                                                                                <?php echo self::render_status_badge( $status ); ?>
-                                                        <?php endif; ?>
-                                                 </div>
-                                               <div class="wir-item-excerpt"><?php echo esc_html( $excerpt ); ?></div>
-                               </div>
-                               <?php
-                               return ob_get_clean();
-       }
-
-       private static function unread_count() {
-               $q = new WP_Query(
-                       array(
-                               'post_type'      => WIR_Plugin::CPT,
-                               'post_status'    => 'publish',
-                               'meta_key'       => '_wir_status',
-                               'meta_value'     => 'unread',
-                               'fields'         => 'ids',
-                               'posts_per_page' => 1,
-                               'no_found_rows'  => false,
-                       )
-               );
-               $count = (int) $q->found_posts;
-               wp_reset_postdata();
-               return $count;
-       }
-
-	public static function ajax_check_new() {
+	public static function ajax_toggle_pin() {
 		if ( ! current_user_can( 'edit_wir_requests' ) ) {
 				wp_send_json_error( 'denied', 403 );
 		}
 			check_ajax_referer( 'wir_admin_nonce', 'nonce' );
+			$id = absint( $_POST['request_id'] ?? 0 );
+		if ( ! $id ) {
+					wp_send_json_error( 'Invalid', 400 );
+		}
+			$curr = get_post_meta( $id, '_wir_pinned', true );
+		if ( $curr ) {
+					delete_post_meta( $id, '_wir_pinned' );
+		} else {
+				update_post_meta( $id, '_wir_pinned', 1 );
+		}
+				wp_send_json_success( array( 'pinned' => empty( $curr ) ) );
+	}
+
+	public static function ajax_toggle_star() {
+		if ( ! current_user_can( 'edit_wir_requests' ) ) {
+				wp_send_json_error( 'denied', 403 );
+		}
+			check_ajax_referer( 'wir_admin_nonce', 'nonce' );
+			$id = absint( $_POST['request_id'] ?? 0 );
+		if ( ! $id ) {
+					wp_send_json_error( 'Invalid', 400 );
+		}
+			$curr = get_post_meta( $id, '_wir_starred', true );
+		if ( $curr ) {
+					delete_post_meta( $id, '_wir_starred' );
+		} else {
+				update_post_meta( $id, '_wir_starred', 1 );
+		}
+				wp_send_json_success( array( 'starred' => empty( $curr ) ) );
+	}
+
+	private static function render_list_item( $id ) {
+					$pid           = (int) get_post_meta( $id, '_wir_product_id', true );
+					$topic         = get_post_meta( $id, '_wir_topic', true );
+					$name          = get_post_meta( $id, '_wir_name', true );
+					$email         = get_post_meta( $id, '_wir_email', true );
+					$msg           = get_post_field( 'post_content', $id );
+					$status        = get_post_meta( $id, '_wir_status', true ) ?: 'open';
+					$assignee_id   = (int) get_post_meta( $id, '_wir_assigned', true );
+					$assignee_user = $assignee_id ? get_user_by( 'id', $assignee_id ) : null;
+					$assignee_name = $assignee_user ? $assignee_user->display_name : '';
+					$pinned        = (int) get_post_meta( $id, '_wir_pinned', true );
+					$starred       = (int) get_post_meta( $id, '_wir_starred', true );
+					$excerpt       = wp_html_excerpt( wp_strip_all_tags( $msg ), 140, '…' );
+					$title         = get_the_title( $pid );
+					$classes       = 'wir-item';
+		if ( 'unread' === $status ) {
+			$classes .= ' is-unread';
+		}
+		if ( $pinned ) {
+			$classes .= ' is-pinned';
+		}
+		if ( $starred ) {
+			$classes .= ' is-starred';
+		}
+					$time = get_post_time( 'U', true, $id );
+
+					ob_start();
+		?>
+								<div class="<?php echo esc_attr( $classes ); ?>" data-id="<?php echo esc_attr( $id ); ?>" data-time="<?php echo esc_attr( $time ); ?>" data-name="<?php echo esc_attr( $name ); ?>" data-email="<?php echo esc_attr( $email ); ?>" data-topic="<?php echo esc_attr( $topic ); ?>" data-object-id="<?php echo esc_attr( $pid ); ?>" data-object-title="<?php echo esc_attr( $title ); ?>" data-status="<?php echo esc_attr( $status ); ?>" data-assignee_name="<?php echo esc_attr( $assignee_name ); ?>" data-content="<?php echo esc_attr( wp_strip_all_tags( $msg ) ); ?>">
+												<div class="wir-item-head">
+																<strong class="wir-item-name"><?php echo esc_html( $name ?: __( 'Guest', 'wp-instant-requests' ) ); ?></strong>
+																<div class="wir-item-head-right">
+																		<span class="wir-pin dashicons dashicons-admin-post" title="<?php esc_attr_e( 'Pin', 'wp-instant-requests' ); ?>"></span>
+																		<span class="wir-star dashicons <?php echo $starred ? 'dashicons-star-filled' : 'dashicons-star-empty'; ?>" title="<?php esc_attr_e( 'Star', 'wp-instant-requests' ); ?>"></span>
+																		<span class="wir-item-time"><?php echo esc_html( get_the_date( 'M j, Y H:i', $id ) ); ?></span>
+																</div>
+												</div>
+												<div class="wir-item-sub">
+													<?php if ( $topic ) : ?>
+																				<span class="wir-badge"><?php echo esc_html( $topic ); ?></span>
+														<?php endif; ?>
+													<?php if ( $title ) : ?>
+																				<span class="wir-dim">· <?php echo esc_html( $title ); ?></span>
+														<?php endif; ?>
+													<?php if ( 'open' !== $status ) : ?>
+																				<?php echo self::render_status_badge( $status ); ?>
+														<?php endif; ?>
+												</div>
+												<div class="wir-item-excerpt"><?php echo esc_html( $excerpt ); ?></div>
+								</div>
+							<?php
+							return ob_get_clean();
+	}
+
+	private static function unread_count() {
+			$q     = new WP_Query(
+				array(
+					'post_type'      => WIR_Plugin::CPT,
+					'post_status'    => 'publish',
+					'meta_key'       => '_wir_status',
+					'meta_value'     => 'unread',
+					'fields'         => 'ids',
+					'posts_per_page' => 1,
+					'no_found_rows'  => false,
+				)
+			);
+			$count = (int) $q->found_posts;
+			wp_reset_postdata();
+			return $count;
+	}
+
+	public static function ajax_check_new() {
+		// if ( ! current_user_can( 'edit_wir_requests' ) ) {
+		// wp_send_json_error( 'denied', 403 );
+		// }
+			check_ajax_referer( 'wir_admin_nonce', 'nonce' );
 			$last_id = absint( $_POST['last_id'] ?? 0 );
 
-               $q      = new WP_Query(
-                               array(
-                                       'post_type'      => WIR_Plugin::CPT,
-                                       'posts_per_page' => 20,
-                                       'meta_key'       => '_wir_pinned',
-                                       'orderby'        => array(
-                                               'meta_value_num' => 'DESC',
-                                               'date'           => 'DESC',
-                                       ),
-                               )
-                       );
-                       $items  = array();
-                       $max_id = $last_id;
-               while ( $q->have_posts() ) {
-                               $q->the_post();
-                               $id = get_the_ID();
-                       if ( $id > $last_id ) {
-                               if ( 'unread' !== get_post_meta( $id, '_wir_status', true ) ) {
-                                       update_post_meta( $id, '_wir_status', 'unread' );
-                               }
-                               $items[] = self::render_list_item( $id );
-                               if ( $id > $max_id ) {
-                                               $max_id = $id;
-                               }
-                       }
-               }
-               wp_reset_postdata();
+				$q              = new WP_Query(
+					array(
+						'post_type'      => WIR_Plugin::CPT,
+						'posts_per_page' => 20,
+						'meta_key'       => '_wir_pinned',
+						'orderby'        => array(
+							'meta_value_num' => 'DESC',
+							'date'           => 'DESC',
+						),
+					)
+				);
+						$items  = array();
+						$max_id = $last_id;
+		while ( $q->have_posts() ) {
+						$q->the_post();
+						$id = get_the_ID();
+			if ( $id > $last_id ) {
+				if ( 'unread' !== get_post_meta( $id, '_wir_status', true ) ) {
+					update_post_meta( $id, '_wir_status', 'unread' );
+				}
+						$items[] = self::render_list_item( $id );
+				if ( $id > $max_id ) {
+								$max_id = $id;
+				}
+			}
+		}
+				wp_reset_postdata();
 
-               $unread = self::unread_count();
+				$unread = self::unread_count();
 
-               wp_send_json_success(
-                       array(
-                               'items'   => $items,
-                               'last_id' => $max_id,
-                               'unread'  => $unread,
-                       )
-               );
-       }
+				wp_send_json_success(
+					array(
+						'items'   => $items,
+						'last_id' => $max_id,
+						'unread'  => $unread,
+					)
+				);
+	}
 
 	/** Register menus (Top: Requests; Subs: All Requests, Settings) */
-       public static function menus() {
-               $unread = self::unread_count();
-               $title  = __( 'Requests', 'wp-instant-requests' );
+	public static function menus() {
+			$unread = self::unread_count();
+			$title  = __( 'Requests', 'wp-instant-requests' );
 
 		if ( $unread > 0 ) {
 			$title .= sprintf(
@@ -385,9 +385,9 @@ class WIR_Admin {
 		self::enqueue_menu_refresh();
 	}
 
-       public static function print_menu_refresh_script() {
-               $unread = self::unread_count();
-               ?>
+	public static function print_menu_refresh_script() {
+			$unread = self::unread_count();
+		?>
 		<script>
 		(function(){
 			if ( typeof updateUnreadBadge === 'function' ) {
@@ -462,7 +462,7 @@ class WIR_Admin {
 
 		$count = wp_count_posts( 'wir_request' );
 		$open  = isset( $count->open ) ? (int) $count->open : 0;
-		
+
 		update_option( 'wir_last_seen_open', $open );
 		self::enqueue_menu_refresh();
 
@@ -471,48 +471,71 @@ class WIR_Admin {
 		$topic  = isset( $_GET['topic'] ) ? sanitize_text_field( wp_unslash( $_GET['topic'] ) ) : '';
 		$paged  = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
 
+		// Pinned first (INT 1), then newest — without hiding unpinned
+		$args = array(
+			'post_type'      => 'wir_request',
+			'post_status'    => 'any',
+			'posts_per_page' => 20,
+			'paged'          => $paged,
+			's'              => $search !== '' ? $search : null,
+		);
 
-    // Build query
-     $args = array(
-             'post_type'      => 'wir_request',
-             // Explicitly list core statuses to avoid empty results on some setups.
-             'post_status'    => array( 'publish', 'pending', 'draft', 'future', 'private' ),
-             'posts_per_page' => 20,
-             'paged'          => $paged,
-             's'              => $search,
-             'meta_key'       => '_wir_pinned',
-             'orderby'        => array(
-                     'meta_value_num' => 'DESC',
-                     'date'           => 'DESC',
-             ),
-     );
+		// Build meta_query with named clauses so orderby doesn't collide with other meta joins
+		$meta_query = array( 'relation' => 'AND' );
+
+		// Topic filter
 		if ( $topic !== '' ) {
-			$args['meta_query'] = array(
-				array(
-					'key'     => '_wir_topic',
-					'value'   => $topic,
-					'compare' => '=',
-				),
-			);
-		}
-		if ( ! empty( $_GET['status'] ) ) {
-			$args['meta_query'][] = array(
-				'key'     => '_wir_status',
-				'value'   => sanitize_text_field( $_GET['status'] ),
+			$meta_query[] = array(
+				'key'     => '_wir_topic',
+				'value'   => $topic,
 				'compare' => '=',
 			);
 		}
+
+		// Status filter
+		if ( ! empty( $_GET['status'] ) ) {
+			$meta_query[] = array(
+				'key'     => '_wir_status',
+				'value'   => sanitize_text_field( wp_unslash( $_GET['status'] ) ),
+				'compare' => '=',
+			);
+		}
+
+		// Assigned-to-me filter
 		if ( ! empty( $_GET['mine'] ) && get_current_user_id() ) {
-			$args['meta_query'][] = array(
+			$meta_query[] = array(
 				'key'     => '_wir_assigned',
 				'value'   => get_current_user_id(),
 				'compare' => '=',
 			);
 		}
 
-		if ( empty( $args['meta_query'] ) ) {
-			unset( $args['meta_query'] );
-		}
+		/**
+		 * IMPORTANT: add a *named* OR group that matches both:
+		 *  - posts where _wir_pinned EXISTS (to sort by its numeric value), and
+		 *  - posts where it does NOT EXIST (so unpinned aren't filtered out).
+		 * Then order by the named clause `pinned_sort`.
+		 */
+		$meta_query[] = array(
+			'relation'    => 'OR',
+			'pinned_sort' => array(
+				'key'     => '_wir_pinned',
+				'type'    => 'NUMERIC', // _wir_pinned is INT 1
+				'compare' => 'EXISTS',
+			),
+			'pinned_none' => array(
+				'key'     => '_wir_pinned',
+				'compare' => 'NOT EXISTS',
+			),
+		);
+
+		$args['meta_query'] = $meta_query;
+
+		// Order: pinned (1) first, then by date DESC
+		$args['orderby'] = array(
+			'pinned_sort' => 'DESC', // use the named meta_query clause
+			'date'        => 'DESC',
+		);
 
 		$q = new WP_Query( $args );
 
@@ -570,11 +593,17 @@ class WIR_Admin {
 				<aside class="wir-list">
 					<div class="wir-list-inner">
 						<?php if ( $q->have_posts() ) : ?>
-										<?php while ( $q->have_posts() ) : $q->the_post(); ?>
+										<?php
+										while ( $q->have_posts() ) :
+											$q->the_post();
+											?>
 														<?php echo self::render_list_item( get_the_ID() ); ?>
 										<?php endwhile; else : ?>
 										<div class="wir-empty"><?php esc_html_e( 'No requests found.', 'wp-instant-requests' ); ?></div>
-										<?php endif; wp_reset_postdata(); ?>
+											<?php
+										endif;
+										wp_reset_postdata();
+										?>
 						</div>
 	
 					<?php
