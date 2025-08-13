@@ -16,7 +16,12 @@ class WIR_Ajax {
         if (!$name || !$email || !is_email($email) || !$msg) {
             wp_send_json_error(__('Missing or invalid fields.', 'wp-instant-requests'), 400);
         }
+        
         if (!$gdpr) wp_send_json_error(__('Consent is required.', 'wp-instant-requests'), 400);
+        
+        if (strlen($msg) > 2000) {
+            wp_send_json_error(__('Message too long.', 'wp-instant-requests'), 400);
+        }
 
         $title = sprintf(__('Request from %s on #%d', 'wp-instant-requests'), $name, $pid);
         $post_id = wp_insert_post([
