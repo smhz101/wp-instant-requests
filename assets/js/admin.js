@@ -95,7 +95,9 @@
       const who = m.type === 'out' ? 'admin' : 'user';
       const status = m.status ? '<div class="wir-msg-status">' + m.status + '</div>' : '';
       const ts = m.time ? new Date(m.time * 1000).toLocaleString() : '';
-      let body = $('<div/>').text(m.message || '').html();
+      let body = $('<div/>')
+        .text(m.message || '')
+        .html();
       if (m.type === 'out') {
         body += '<span class="dashicons dashicons-email"></span>';
       }

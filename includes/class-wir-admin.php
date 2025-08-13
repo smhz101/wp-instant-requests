@@ -279,9 +279,9 @@ class WIR_Admin {
 	}
 
 	public static function ajax_check_new() {
-		// if ( ! current_user_can( 'edit_wir_requests' ) ) {
-		// wp_send_json_error( 'denied', 403 );
-		// }
+		if ( ! current_user_can( 'edit_wir_requests' ) ) {
+			wp_send_json_error( 'denied', 403 );
+		}
 			check_ajax_referer( 'wir_admin_nonce', 'nonce' );
 			$last_id = absint( $_POST['last_id'] ?? 0 );
 
@@ -289,11 +289,11 @@ class WIR_Admin {
 					array(
 						'post_type'      => WIR_Plugin::CPT,
 						'posts_per_page' => 20,
-						'meta_key'       => '_wir_pinned',
-						'orderby'        => array(
-							'meta_value_num' => 'DESC',
-							'date'           => 'DESC',
-						),
+						// 'meta_key'       => '_wir_pinned',
+						// 'orderby'        => array(
+						// 	'meta_value_num' => 'DESC',
+						// 	'date'           => 'DESC',
+						// ),
 					)
 				);
 						$items  = array();
@@ -422,6 +422,16 @@ class WIR_Admin {
 
 	/** Load CSS/JS only on our pages */
 	public static function enqueue_admin_assets() {
+		wp_enqueue_script( 'wir-admin-badge', WIR_URL . 'assets/js/admin-badge.js', array( 'jquery' ), WIR_VERSION, true );
+		wp_localize_script(
+			'wir-admin-badge',
+			'WIRBadge',
+			array(
+				'ajax'  => admin_url( 'admin-ajax.php' ),
+				'nonce' => wp_create_nonce( 'wir_admin_nonce' ),
+			)
+		);
+
 		$page = isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : '';
 		if ( ! in_array( $page, array( 'wir', 'wir-settings' ), true ) ) {
 			return;
@@ -473,7 +483,7 @@ class WIR_Admin {
 
 		// Pinned first (INT 1), then newest — without hiding unpinned
 		$args = array(
-			'post_type'      => 'wir_request',
+			'post_type'      => WIR_Plugin::CPT,
 			'post_status'    => 'any',
 			'posts_per_page' => 20,
 			'paged'          => $paged,
