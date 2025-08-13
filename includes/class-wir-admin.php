@@ -472,18 +472,18 @@ class WIR_Admin {
 		$paged  = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
 
 		// Build query
-               $args = array(
-                       'post_type'      => 'wir_request',
-                       'post_status'    => 'any',
-                       'posts_per_page' => 20,
-                       'paged'          => $paged,
-                       's'              => $search,
-                       'meta_key'       => '_wir_pinned',
-                       'orderby'        => array(
-                               'meta_value_num' => 'DESC',
-                               'date'           => 'DESC',
-                       ),
-               );
+		$args = array(
+			'post_type'      => 'wir_request',
+			'post_status'    => 'any',
+			'posts_per_page' => 20,
+			'paged'          => $paged,
+			's'              => $search,
+			'meta_key'       => '_wir_pinned',
+			'orderby'        => array(
+				'meta_value_num' => 'DESC',
+				'date'           => 'DESC',
+			),
+		);
 		if ( $topic !== '' ) {
 			$args['meta_query'] = array(
 				array(
@@ -567,13 +567,13 @@ class WIR_Admin {
 			<div class="wir-mailbox">
 				<aside class="wir-list">
 					<div class="wir-list-inner">
-                                       <?php if ( $q->have_posts() ) : ?>
-                                               <?php while ( $q->have_posts() ) : $q->the_post(); ?>
-                                                       <?php echo self::render_list_item( get_the_ID() ); ?>
-                                               <?php endwhile; else : ?>
-                                               <div class="wir-empty"><?php esc_html_e( 'No requests found.', 'wp-instant-requests' ); ?></div>
-                                               <?php endif; wp_reset_postdata(); ?>
-                                       </div>
+						<?php if ( $q->have_posts() ) : ?>
+										<?php while ( $q->have_posts() ) : $q->the_post(); ?>
+														<?php echo self::render_list_item( get_the_ID() ); ?>
+										<?php endwhile; else : ?>
+										<div class="wir-empty"><?php esc_html_e( 'No requests found.', 'wp-instant-requests' ); ?></div>
+										<?php endif; wp_reset_postdata(); ?>
+						</div>
 	
 					<?php
 					$total = (int) $q->max_num_pages;
