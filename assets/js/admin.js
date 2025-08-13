@@ -143,9 +143,24 @@
 
   // Select item
   $doc.on('click', '.wir-item', function () {
+    const $item = $(this);
     $('.wir-item').removeClass('is-active');
-    $(this).addClass('is-active');
-    currentId = parseInt($(this).data('id'), 10);
+    $item.addClass('is-active');
+    currentId = parseInt($item.data('id'), 10);
+    if ($item.hasClass('is-unread')) {
+      $.post(
+        WIRAdmin.ajax,
+        { action: 'wir_mark_read', nonce: WIRAdmin.nonce, request_id: currentId },
+        function (res) {
+          if (res && res.success) {
+            $item.removeClass('is-unread');
+            if (typeof res.data.unread !== 'undefined') {
+              updateUnreadBadge(parseInt(res.data.unread, 10) || 0);
+            }
+          }
+        }
+      );
+    }
     fillPreviewFromServer(currentId);
   });
 
