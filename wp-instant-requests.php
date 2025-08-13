@@ -8,7 +8,7 @@
  * Domain Path: /languages
  */
 
-defined('ABSPATH') || exit;
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Plugin constants
@@ -17,10 +17,18 @@ defined('ABSPATH') || exit;
  * - WIR_URL:  base URL for assets
  * - WIR_VERSION: plugin version for cache-busting
  */
-if (!defined('WIR_FILE'))    define('WIR_FILE', __FILE__);
-if (!defined('WIR_DIR'))     define('WIR_DIR', plugin_dir_path(WIR_FILE));
-if (!defined('WIR_URL'))     define('WIR_URL', plugin_dir_url(WIR_FILE));
-if (!defined('WIR_VERSION')) define('WIR_VERSION', '1.0.0');
+if ( ! defined( 'WIR_FILE' ) ) {
+	define( 'WIR_FILE', __FILE__ );
+}
+if ( ! defined( 'WIR_DIR' ) ) {
+	define( 'WIR_DIR', plugin_dir_path( WIR_FILE ) );
+}
+if ( ! defined( 'WIR_URL' ) ) {
+	define( 'WIR_URL', plugin_dir_url( WIR_FILE ) );
+}
+if ( ! defined( 'WIR_VERSION' ) ) {
+	define( 'WIR_VERSION', '1.0.0' );
+}
 
 /**
  * Manual includes (no Composer / no autoloader).
@@ -43,41 +51,53 @@ require_once WIR_DIR . 'includes/integrations/class-wir-integration-generic.php'
 /**
  * Load text domain early so strings are translatable in hooks.
  */
-add_action('plugins_loaded', function () {
-    load_plugin_textdomain('wp-instant-requests', false, basename(WIR_DIR) . '/languages');
+add_action(
+	'plugins_loaded',
+	function () {
+		load_plugin_textdomain( 'wp-instant-requests', false, basename( WIR_DIR ) . '/languages' );
 
-    // Boot the plugin after translations are available.
-    if (class_exists('WIR_Plugin')) {
-        WIR_Plugin::instance();
-    }
-});
+		// Boot the plugin after translations are available.
+		if ( class_exists( 'WIR_Plugin' ) ) {
+			WIR_Plugin::instance();
+		}
+	}
+);
 
 /**
  * Activation: register CPT, seed defaults, flush rewrites.
  */
-register_activation_hook(WIR_FILE, function () {
-    if (class_exists('WIR_CPT')) {
-        WIR_CPT::register();
-    }
-    // Seed defaults only once.
-    if (!get_option('wir_settings')) {
-        add_option('wir_settings', [
-            'button_text' => __('Ask about this item', 'wp-instant-requests'),
-            'side'        => 'right',          // left|right
-            'accent'      => '#2563eb',        // CSS accent color
-            'topics'      => "General Inquiry\nRequest a Quote\nAvailability\nShipping",
-            'notify'      => 'yes',            // send admin email on new request
-            'gdpr_label'  => __('I agree to be contacted about this request.', 'wp-instant-requests'),
-            'enabled'     => 'yes',            // master switch
-            'show_on'     => 'product',        // product|single|both
-        ]);
-    }
-    flush_rewrite_rules(false);
-});
+register_activation_hook(
+	WIR_FILE,
+	function () {
+		if ( class_exists( 'WIR_CPT' ) ) {
+			WIR_CPT::register();
+		}
+		// Seed defaults only once.
+		if ( ! get_option( 'wir_settings' ) ) {
+			add_option(
+				'wir_settings',
+				array(
+					'button_text' => __( 'Ask about this item', 'wp-instant-requests' ),
+					'side'        => 'right',          // left|right
+					'accent'      => '#2563eb',        // CSS accent color
+					'topics'      => "General Inquiry\nRequest a Quote\nAvailability\nShipping",
+					'notify'      => 'yes',            // send admin email on new request
+					'gdpr_label'  => __( 'I agree to be contacted about this request.', 'wp-instant-requests' ),
+					'enabled'     => 'yes',            // master switch
+					'show_on'     => 'product',        // product|single|both
+				)
+			);
+		}
+		flush_rewrite_rules( false );
+	}
+);
 
 /**
  * Deactivation: flush only (no data removal).
  */
-register_deactivation_hook(WIR_FILE, function () {
-    flush_rewrite_rules(false);
-});
+register_deactivation_hook(
+	WIR_FILE,
+	function () {
+		flush_rewrite_rules( false );
+	}
+);
