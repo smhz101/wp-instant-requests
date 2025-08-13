@@ -1,6 +1,7 @@
 /* global jQuery, WIRAdmin */
 (function ($) {
   'use strict';
+  const { updateUnreadBadge, placeItem } = window.WIRUtils;
   const $doc = $(document);
   let currentId = 0;
 
@@ -49,7 +50,7 @@
     }
   }
 
-    // placeItem is provided by admin-badge.js
+  // placeItem is provided by WIRUtils
 
   function renderThread(items) {
     const $t = $('.wir-thread').empty();
@@ -124,7 +125,7 @@
     );
   }
 
-  // updateUnreadBadge is provided by admin-badge.js
+  // updateUnreadBadge is provided by WIRUtils
 
   // Select item
   $doc.on('click', '.wir-item', function () {
