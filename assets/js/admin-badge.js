@@ -1,6 +1,6 @@
 (function ($) {
   'use strict';
-  let lastKnownId = 0;
+  let lastKnownId = parseInt(WIRBadge.last_id, 10) || 0;
 
   // Update the admin menu badge (works on any admin page)
   function updateUnreadBadge(count) {
@@ -63,7 +63,10 @@
         return parseInt($(this).data('id'), 10) || 0;
       })
       .get();
-    if (ids.length) lastKnownId = Math.max.apply(null, ids);
+    if (ids.length) {
+      const domMax = Math.max.apply(null, ids);
+      if (domMax > lastKnownId) lastKnownId = domMax;
+    }
   }
 
   function poll() {

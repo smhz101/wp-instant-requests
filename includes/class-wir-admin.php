@@ -279,49 +279,54 @@ class WIR_Admin {
 	}
 
 	public static function ajax_check_new() {
-		if ( ! current_user_can( 'edit_wir_requests' ) ) {
-			wp_send_json_error( 'denied', 403 );
-		}
-			check_ajax_referer( 'wir_admin_nonce', 'nonce' );
-			$last_id = absint( $_POST['last_id'] ?? 0 );
+	        if ( ! current_user_can( 'edit_wir_requests' ) ) {
+	                wp_send_json_error( 'denied', 403 );
+	        }
 
-				$q              = new WP_Query(
-					array(
-						'post_type'      => WIR_Plugin::CPT,
-						'posts_per_page' => 20,
-						// 'meta_key'       => '_wir_pinned',
-						// 'orderby'        => array(
-						// 	'meta_value_num' => 'DESC',
-						// 	'date'           => 'DESC',
-						// ),
-					)
-				);
-						$items  = array();
-						$max_id = $last_id;
-		while ( $q->have_posts() ) {
-						$q->the_post();
-						$id = get_the_ID();
-			if ( $id > $last_id ) {
-				if ( 'unread' !== get_post_meta( $id, '_wir_status', true ) ) {
-					update_post_meta( $id, '_wir_status', 'unread' );
-				}
-						$items[] = self::render_list_item( $id );
-				if ( $id > $max_id ) {
-								$max_id = $id;
-				}
-			}
-		}
-				wp_reset_postdata();
+	        check_ajax_referer( 'wir_admin_nonce', 'nonce' );
+	        $last_id = absint( $_POST['last_id'] ?? 0 );
 
-				$unread = self::unread_count();
+	        $q = new WP_Query(
+	                array(
+	                        'post_type'      => WIR_Plugin::CPT,
+	                        'posts_per_page' => 20,
+	                )
+	        );
 
-				wp_send_json_success(
-					array(
-						'items'   => $items,
-						'last_id' => $max_id,
-						'unread'  => $unread,
-					)
-				);
+	        $items  = array();
+	        $max_id = $last_id;
+
+	        while ( $q->have_posts() ) {
+	                $q->the_post();
+	                $id = get_the_ID();
+
+	                if ( $id > $max_id ) {
+	                        $max_id = $id;
+	                }
+
+	                if ( $last_id && $id > $last_id ) {
+	                        if ( 'unread' !== get_post_meta( $id, '_wir_status', true ) ) {
+	                                update_post_meta( $id, '_wir_status', 'unread' );
+	                        }
+	                        $items[] = self::render_list_item( $id );
+	                }
+	        }
+
+	        wp_reset_postdata();
+
+	        $unread = self::unread_count();
+
+	        if ( get_current_user_id() ) {
+	                update_user_meta( get_current_user_id(), '_wir_last_seen_id', $max_id );
+	        }
+
+	        wp_send_json_success(
+	                array(
+	                        'items'   => $items,
+	                        'last_id' => $max_id,
+	                        'unread'  => $unread,
+	                )
+	        );
 	}
 
 	/** Register menus (Top: Requests; Subs: All Requests, Settings) */
@@ -422,15 +427,20 @@ class WIR_Admin {
 
 	/** Load CSS/JS only on our pages */
 	public static function enqueue_admin_assets() {
-		wp_enqueue_script( 'wir-admin-badge', WIR_URL . 'assets/js/admin-badge.js', array( 'jquery' ), WIR_VERSION, true );
-		wp_localize_script(
-			'wir-admin-badge',
-			'WIRBadge',
-			array(
-				'ajax'  => admin_url( 'admin-ajax.php' ),
-				'nonce' => wp_create_nonce( 'wir_admin_nonce' ),
-			)
-		);
+	        wp_enqueue_script( 'wir-admin-badge', WIR_URL . 'assets/js/admin-badge.js', array( 'jquery' ), WIR_VERSION, true );
+
+	        $uid       = get_current_user_id();
+	        $last_seen = $uid ? (int) get_user_meta( $uid, '_wir_last_seen_id', true ) : 0;
+
+	        wp_localize_script(
+	                'wir-admin-badge',
+	                'WIRBadge',
+	                array(
+	                        'ajax'     => admin_url( 'admin-ajax.php' ),
+	                        'nonce'    => wp_create_nonce( 'wir_admin_nonce' ),
+	                        'last_id'  => $last_seen,
+	                )
+	        );
 
 		$page = isset( $_GET['page'] ) ? sanitize_key( $_GET['page'] ) : '';
 		if ( ! in_array( $page, array( 'wir', 'wir-settings' ), true ) ) {
@@ -438,7 +448,7 @@ class WIR_Admin {
 		}
 
 		wp_enqueue_style( 'wir-admin', WIR_URL . 'assets/css/admin.css', array(), WIR_VERSION );
-               wp_enqueue_script( 'wir-admin', WIR_URL . 'assets/js/admin.js', array( 'jquery', 'wir-admin-badge' ), WIR_VERSION, true );
+	       wp_enqueue_script( 'wir-admin', WIR_URL . 'assets/js/admin.js', array( 'jquery', 'wir-admin-badge' ), WIR_VERSION, true );
 
 		wp_localize_script(
 			'wir-admin',
