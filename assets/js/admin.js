@@ -3,7 +3,6 @@
   'use strict';
   const $doc = $(document);
   let currentId = 0;
-  let lastKnownId = 0;
 
   // Set mailbox height based on available viewport space
   function setMailboxHeightVar() {
@@ -15,17 +14,9 @@
     grid.style.height = h + 'px';
   }
 
-  document.addEventListener('DOMContentLoaded', function () {
-    setMailboxHeightVar();
-    const ids = $('.wir-item')
-      .map(function () {
-        return parseInt($(this).data('id'), 10) || 0;
-      })
-      .get();
-    if (ids.length) {
-      lastKnownId = Math.max.apply(null, ids);
-    }
-  });
+    document.addEventListener('DOMContentLoaded', function () {
+      setMailboxHeightVar();
+    });
   window.addEventListener('resize', setMailboxHeightVar);
 
   // Helpers
@@ -58,32 +49,7 @@
     }
   }
 
-  function placeItem($item) {
-    const $list = $('.wir-list-inner');
-    const time = parseInt($item.data('time'), 10) || 0;
-    if ($item.hasClass('is-pinned')) {
-      $list.prepend($item);
-      return;
-    }
-    let inserted = false;
-    const $unpinned = $list.children('.wir-item').not('.is-pinned');
-    $unpinned.each(function () {
-      const t = parseInt($(this).data('time'), 10) || 0;
-      if (!inserted && time > t) {
-        $(this).before($item);
-        inserted = true;
-        return false;
-      }
-    });
-    if (!inserted) {
-      const $lastPinned = $list.children('.wir-item.is-pinned').last();
-      if ($lastPinned.length) {
-        $lastPinned.after($item);
-      } else {
-        $list.append($item);
-      }
-    }
-  }
+    // placeItem is provided by admin-badge.js
 
   function renderThread(items) {
     const $t = $('.wir-thread').empty();
@@ -158,28 +124,7 @@
     );
   }
 
-  function updateUnreadBadge(count) {
-    const $menu = $('#toplevel_page_wir .wp-menu-name');
-    let $badge = $menu.find('.update-plugins');
-    if (count > 0) {
-      if (!$badge.length) {
-        $badge = $(
-          '<span class="update-plugins count-' +
-            count +
-            '"><span class="plugin-count">' +
-            count +
-            '</span></span>'
-        );
-        $menu.append($badge);
-      } else {
-        $badge.attr('class', 'update-plugins count-' + count);
-        $badge.find('.plugin-count').text(count);
-      }
-    } else {
-      $badge.remove();
-    }
-  }
-  window.updateUnreadBadge = updateUnreadBadge;
+  // updateUnreadBadge is provided by admin-badge.js
 
   // Select item
   $doc.on('click', '.wir-item', function () {
@@ -312,27 +257,7 @@
     });
   });
 
-  // Poll for new requests
-  setInterval(function () {
-    $.post(
-      WIRAdmin.ajax,
-      { action: 'wir_check_new', nonce: WIRAdmin.nonce, last_id: lastKnownId },
-      function (res) {
-        if (res && res.success) {
-          if (Array.isArray(res.data.items) && res.data.items.length) {
-            res.data.items.forEach(function (html) {
-              const $item = $(html);
-              placeItem($item);
-            });
-            lastKnownId = parseInt(res.data.last_id, 10) || lastKnownId;
-          }
-          if (typeof res.data.unread !== 'undefined') {
-            updateUnreadBadge(parseInt(res.data.unread, 10) || 0);
-          }
-        }
-      }
-    );
-  }, 15000);
+  // Polling handled by admin-badge.js
 
   // Toggle status
   $doc.on('click', '#wir-toggle-status', function (e) {
