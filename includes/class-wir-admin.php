@@ -315,27 +315,26 @@ class WIR_Admin {
 							$pid   = (int) get_post_meta( get_the_ID(), '_wir_product_id', true );
 							$topic = get_post_meta( get_the_ID(), '_wir_topic', true );
 							$name  = get_post_meta( get_the_ID(), '_wir_name', true );
-							// $email = get_post_meta(get_the_ID(), '_wir_email', true);
+							$email = get_post_meta(get_the_ID(), '_wir_email', true);
 							$msg = get_the_content( null, false, get_the_ID() );
-							// $status        = get_post_meta(get_the_ID(), '_wir_status', true) ?: 'open';
-							// $assignee_id   = (int) get_post_meta(get_the_ID(), '_wir_assigned', true);
-							// $assignee_user = $assignee_id ? get_user_by('id', $assignee_id) : null;
-							// $assignee_name = $assignee_user ? $assignee_user->display_name : '';
+							$status        = get_post_meta(get_the_ID(), '_wir_status', true) ?: 'open';
+							$assignee_id   = (int) get_post_meta(get_the_ID(), '_wir_assigned', true);
+							$assignee_user = $assignee_id ? get_user_by('id', $assignee_id) : null;
+							$assignee_name = $assignee_user ? $assignee_user->display_name : '';
 
 							$excerpt = wp_html_excerpt( wp_strip_all_tags( $msg ), 140, '…' );
 							$title   = get_the_title( $pid );
 							?>
-						<div class="wir-item" data-id="<?php echo esc_attr( get_the_ID() ); ?>">
-						<!-- <div class="wir-item"
-								data-id="<?php // echo esc_attr(get_the_ID()); ?>"
-								data-name="<?php // echo esc_attr($name); ?>"
-								data-email="<?php // echo esc_attr($email); ?>"
-								data-topic="<?php // echo esc_attr($topic); ?>"
-								data-object-id="<?php // echo esc_attr($pid); ?>"
-								data-object-title="<?php // echo esc_attr($title); ?>"
-								data-status="<?php // echo esc_attr($status); ?>"
-								data-assignee_name="<?php // echo esc_attr($assignee_name); ?>"
-								data-content="<?php // echo esc_attr(wp_strip_all_tags($msg)); ?>"> -->
+						<div class="wir-item"
+								data-id="<?php echo esc_attr(get_the_ID()); ?>"
+								data-name="<?php echo esc_attr($name); ?>"
+								data-email="<?php echo esc_attr($email); ?>"
+								data-topic="<?php echo esc_attr($topic); ?>"
+								data-object-id="<?php echo esc_attr($pid); ?>"
+								data-object-title="<?php echo esc_attr($title); ?>"
+								data-status="<?php echo esc_attr($status); ?>"
+								data-assignee_name="<?php echo esc_attr($assignee_name); ?>"
+								data-content="<?php echo esc_attr(wp_strip_all_tags($msg)); ?>">
 							<div class="wir-item-head">
 								<strong class="wir-item-name"><?php echo esc_html( $name ?: __( 'Guest', 'wp-instant-requests' ) ); ?></strong>
 								<span class="wir-item-time"><?php echo esc_html( get_the_date( 'M j, Y H:i' ) ); ?></span>

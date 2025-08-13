@@ -63,6 +63,12 @@
 .wir-item:hover {
 	background: #f8fafc;
 }
+.wir-item.is-unread {
+	background: #fefce8;
+}
+.wir-item.is-unread .wir-item-name {
+	font-weight: 800;
+}
 .wir-item.is-active {
 	background: #eef2ff;
 }
