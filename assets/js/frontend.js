@@ -83,6 +83,10 @@
       status.textContent = WIRData.i18n_required || 'Please fill required fields.';
       return;
     }
+    if (data.message.length > 2000) {
+      status.textContent = WIRData.i18n_limit || 'Message too long (max 2000 characters).';
+      return;
+    }
     if (data.gdpr !== '1') {
       status.textContent = WIRData.i18n_consent || 'Please confirm consent.';
       return;
