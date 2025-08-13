@@ -34,6 +34,18 @@
       '</span>'
     );
   }
+
+  function updateActiveItemStatus(status) {
+    const $item = $('.wir-item.is-active');
+    if (!$item.length) return;
+    $item.attr('data-status', status);
+    const $sub = $item.find('.wir-item-sub');
+    $sub.find('.wir-status-badge').remove();
+    if (status !== 'open') {
+      $sub.append($(badge(status)).addClass('wir-status-badge'));
+    }
+  }
+
   function renderThread(items) {
     const $t = $('.wir-thread').empty();
     if (!Array.isArray(items) || !items.length) {
@@ -132,8 +144,7 @@
           $status.css('color', '#059669').text(WIRAdmin.i18n.reply_sent);
           $('#wir-reply-text').val('');
           renderThread(res.data.items || []);
-          // update list badge to replied
-          // $('.wir-item.is-active').attr('data-status', 'replied');
+          updateActiveItemStatus('replied');
         } else {
           $status.css('color', '#b91c1c').text((res && res.data) || WIRAdmin.i18n.error);
         }
@@ -187,7 +198,7 @@
       function (res) {
         if (res && res.success) {
           $('.wir-preview-status-badge').html(badge(res.data.status));
-          // $('.wir-item.is-active').attr('data-status', res.data.status);
+          updateActiveItemStatus(res.data.status);
         }
       }
     );
