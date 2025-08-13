@@ -4,17 +4,21 @@
   const $doc = $(document);
   let currentId = 0;
 
-  // Height var (keep)
+  // Set mailbox height based on available viewport space
   function setMailboxHeightVar() {
     var grid = document.querySelector('.wir-mailbox');
     if (!grid) return;
-    var r = grid.getBoundingClientRect();
-    var t = Math.max(120, r.top);
-    document.documentElement.style.setProperty('--wir-top', t + 40 + 'px');
+    var h = window.innerHeight - grid.getBoundingClientRect().top - 20;
+    grid.style.height = h + 'px';
   }
-  document.addEventListener('DOMContentLoaded', setMailboxHeightVar);
+
+  document.addEventListener('DOMContentLoaded', function () {
+    if (new URLSearchParams(window.location.search).get('page') === 'wir') {
+      // document.body.style.overflow = 'hidden';
+    }
+    setMailboxHeightVar();
+  });
   window.addEventListener('resize', setMailboxHeightVar);
-  document.addEventListener('scroll', setMailboxHeightVar, true);
 
   // Helpers
   function badge(status) {
