@@ -195,39 +195,34 @@ class WIR_Admin {
 				}
 			}
 		}
-			wp_reset_postdata();
+		wp_reset_postdata();
 
-			$unread_q = new WP_Query(
-				array(
-					'post_type'      => WIR_Plugin::CPT,
-					'post_status'    => 'publish',
-					'meta_key'       => '_wir_status',
-					'meta_value'     => 'open',
-					'posts_per_page' => 1,
-				)
-			);
-			$unread   = (int) $unread_q->found_posts;
-			wp_reset_postdata();
+		$count  = wp_count_posts( 'wir_request' );
+		$open   = isset( $count->open ) ? (int) $count->open : 0;
+		$seen   = (int) get_option( 'wir_last_seen_open', 0 );
+		$unread = max( 0, $open - $seen );
 
-			wp_send_json_success(
-				array(
-					'items'   => $items,
-					'last_id' => $max_id,
-					'unread'  => $unread,
-				)
-			);
+		wp_send_json_success(
+			array(
+				'items'   => $items,
+				'last_id' => $max_id,
+				'unread'  => $unread,
+			)
+		);
 	}
 
 	/** Register menus (Top: Requests; Subs: All Requests, Settings) */
 	public static function menus() {
-		$count = wp_count_posts( 'wir_request' );
-		$open  = isset( $count->open ) ? (int) $count->open : 0;
-		$title = __( 'Requests', 'wp-instant-requests' );
+		$count  = wp_count_posts( 'wir_request' );
+		$open   = isset( $count->open ) ? (int) $count->open : 0;
+		$seen   = (int) get_option( 'wir_last_seen_open', 0 );
+		$unread = max( 0, $open - $seen );
+		$title  = __( 'Requests', 'wp-instant-requests' );
 
-		if ( $open > 0 ) {
+		if ( $unread > 0 ) {
 			$title .= sprintf(
-				' <span class="update-plugins count-%1$d"><span class="plugin-count">%1$d</span></span>',
-				$open
+				'<span class="update-plugins count-%1$d"><span class="plugin-count">%1$d</span></span>',
+				$unread
 			);
 		}
 
@@ -236,7 +231,7 @@ class WIR_Admin {
 			$title,
 			'edit_wir_requests',
 			'wir',
-			array( __CLASS__, 'page_requests' ), // Custom mailbox page at top-level
+			array( __CLASS__, 'page_requests' ),
 			'dashicons-email-alt2',
 			56
 		);
@@ -281,19 +276,25 @@ class WIR_Admin {
 	}
 
 	public static function print_menu_refresh_script() {
-		$count = wp_count_posts( 'wir_request' );
-		$open  = isset( $count->open ) ? (int) $count->open : 0;
+		$count  = wp_count_posts( 'wir_request' );
+		$open   = isset( $count->open ) ? (int) $count->open : 0;
+		$seen   = (int) get_option( 'wir_last_seen_open', 0 );
+		$unread = max( 0, $open - $seen );
 		?>
 		<script>
 		(function(){
 			if ( typeof updateUnreadBadge === 'function' ) {
-				updateUnreadBadge( <?php echo $open; ?> );
+				updateUnreadBadge( <?php echo $unread; ?> );
 				return;
 			}
-			var menu  = document.querySelector('#toplevel_page_wir .wp-menu-name');
+			
+			let menu  = document.querySelector('#toplevel_page_wir .wp-menu-name');
+			
 			if ( ! menu ) { return; }
-			var badge = menu.querySelector('.update-plugins');
-			var count = <?php echo $open; ?>;
+			
+			let badge = menu.querySelector('.update-plugins');
+			let count = <?php echo $unread; ?>;
+		
 			if ( count > 0 ) {
 				if ( ! badge ) {
 					badge = document.createElement('span');
@@ -351,6 +352,12 @@ class WIR_Admin {
 		if ( ! current_user_can( 'edit_wir_requests' ) ) {
 			wp_die( __( 'You do not have permission.', 'wp-instant-requests' ) );
 		}
+
+		$count = wp_count_posts( 'wir_request' );
+		$open  = isset( $count->open ) ? (int) $count->open : 0;
+		
+		update_option( 'wir_last_seen_open', $open );
+		self::enqueue_menu_refresh();
 
 		// Inputs
 		$search = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
