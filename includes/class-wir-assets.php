@@ -51,6 +51,7 @@ class WIR_Assets {
             'i18n_required' => __('Please fill required fields.', 'wp-instant-requests'),
             'i18n_consent'  => __('Please confirm consent.', 'wp-instant-requests'),
             'i18n_sent'     => __('Request sent. Thank you!', 'wp-instant-requests'),
+            'i18n_limit'    => __('Message too long. Please use 2000 characters or fewer.', 'wp-instant-requests'),
         ];
 
         if (!empty($o['recaptcha_site'])) {
@@ -111,7 +112,7 @@ class WIR_Assets {
                 <select class="wir-select" id="wir-topic"></select>
 
                 <label class="wir-label" style="margin-top:10px;"><?php esc_html_e('Message', 'wp-instant-requests'); ?></label>
-                <textarea class="wir-textarea" id="wir-message" rows="5" placeholder="<?php esc_attr_e('Type your question or request…', 'wp-instant-requests'); ?>"></textarea>
+                <textarea class="wir-textarea" id="wir-message" rows="5" maxlength="2000" placeholder="<?php esc_attr_e('Type your question or request…', 'wp-instant-requests'); ?>"></textarea>
 
                 <label style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;">
                     <input type="checkbox" id="wir-gdpr" />
