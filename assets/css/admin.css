@@ -56,9 +56,10 @@
 	max-height: 100%;
 }
 .wir-item {
-	padding: 12px 14px;
-	border-bottom: 1px solid #f1f5f9;
-	cursor: pointer;
+        padding: 12px 14px;
+        border-bottom: 1px solid #f1f5f9;
+       cursor: pointer;
+       background: #fff;
 }
 .wir-item:hover {
 	background: #f8fafc;
@@ -96,11 +97,26 @@
 	font-size: 12px;
 }
 .wir-badge {
-	background: #eef2ff;
-	color: #3730a3;
-	border-radius: 999px;
-	padding: 3px 8px;
-	font-weight: 600;
+        background: #eef2ff;
+        color: #3730a3;
+        border-radius: 999px;
+        padding: 3px 8px;
+        font-weight: 600;
+}
+.wir-status-badge {
+       text-transform: capitalize;
+}
+.wir-status-badge.status-open {
+       background: #2563eb1a;
+       color: #2563eb;
+}
+.wir-status-badge.status-replied {
+       background: #0596691a;
+       color: #059669;
+}
+.wir-status-badge.status-closed {
+       background: #6b72801a;
+       color: #6b7280;
 }
 .wir-dim {
 	color: #9ca3af;
