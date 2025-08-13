@@ -69,32 +69,38 @@ class WIR_Ajax {
 				),
 			)
 		);
-				update_post_meta( $post_id, '_wir_status', 'unread' );
+		update_post_meta( $post_id, '_wir_status', 'unread' );
 
 		// Optional email notify.
 		$o = WIR_Plugin::settings();
 
 		if ( ! empty( $o['recaptcha_secret'] ) ) {
+			
 			$token = isset( $_POST['g_recaptcha_response'] ) ? sanitize_text_field( wp_unslash( $_POST['g_recaptcha_response'] ) ) : '';
+			
 			if ( ! $token ) {
 				wp_send_json_error( __( 'Captcha missing.', 'wp-instant-requests' ), 400 );
 			}
-						$resp = wp_safe_remote_post(
-							'https://www.google.com/recaptcha/api/siteverify',
-							array(
-								'timeout' => 8,
-								'body'    => array(
-									'secret'   => $o['recaptcha_secret'],
-									'response' => $token,
-									'remoteip' => $remote_ip,
-								),
-							)
-						);
-			$ok               = false;
+
+			$resp = wp_safe_remote_post(
+				'https://www.google.com/recaptcha/api/siteverify',
+				array(
+					'timeout' => 8,
+					'body'    => array(
+						'secret'   => $o['recaptcha_secret'],
+						'response' => $token,
+						'remoteip' => $remote_ip,
+					),
+				)
+			);
+
+			$ok = false;
+
 			if ( ! is_wp_error( $resp ) ) {
 				$body = json_decode( wp_remote_retrieve_body( $resp ), true );
 				$ok   = ! empty( $body['success'] );
 			}
+
 			if ( ! $ok ) {
 				wp_send_json_error( __( 'Captcha failed.', 'wp-instant-requests' ), 400 );
 			}

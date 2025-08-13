@@ -462,9 +462,6 @@ class WIR_Admin {
 
 		// Enqueue admin assets on our pages only
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_admin_assets' ) );
-
-		// AJAX: admin reply
-		add_action( 'wp_ajax_wir_admin_reply', array( __CLASS__, 'ajax_admin_reply' ) );
 	}
 
 	private static function enqueue_menu_refresh() {
