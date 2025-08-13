@@ -6,24 +6,24 @@ class WIR_Ajax {
 	public static function submit() {
 		check_ajax_referer( WIR_Plugin::NONCE, 'nonce' );
 
-                $pid   = isset( $_POST['pid'] ) ? absint( $_POST['pid'] ) : 0;
-                $name  = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
-                $email = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
-                $topic = isset( $_POST['topic'] ) ? sanitize_text_field( wp_unslash( $_POST['topic'] ) ) : '';
-                $msg   = isset( $_POST['message'] ) ? wp_kses_post( wp_unslash( $_POST['message'] ) ) : '';
-                $gdpr  = isset( $_POST['gdpr'] ) && $_POST['gdpr'] === '1';
-                $hp    = isset( $_POST['hp'] ) ? trim( wp_unslash( $_POST['hp'] ) ) : '';
-                $uid   = get_current_user_id();
-                $remote_ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
-                $tkey  = 'wir_t_' . ( $uid ? $uid : md5( $remote_ip ) );
+				$pid       = isset( $_POST['pid'] ) ? absint( $_POST['pid'] ) : 0;
+				$name      = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
+				$email     = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
+				$topic     = isset( $_POST['topic'] ) ? sanitize_text_field( wp_unslash( $_POST['topic'] ) ) : '';
+				$msg       = isset( $_POST['message'] ) ? wp_kses_post( wp_unslash( $_POST['message'] ) ) : '';
+				$gdpr      = isset( $_POST['gdpr'] ) && $_POST['gdpr'] === '1';
+				$hp        = isset( $_POST['hp'] ) ? trim( wp_unslash( $_POST['hp'] ) ) : '';
+				$uid       = get_current_user_id();
+				$remote_ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+				$tkey      = 'wir_t_' . ( $uid ? $uid : md5( $remote_ip ) );
 
-                if ( $hp !== '' ) {
-                        wp_send_json_error( __( 'Spam detected.', 'wp-instant-requests' ), 400 );
-                }
+		if ( $hp !== '' ) {
+				wp_send_json_error( __( 'Spam detected.', 'wp-instant-requests' ), 400 );
+		}
 
-                if ( get_transient( $tkey ) ) {
-                        wp_send_json_error( __( 'Please wait before sending another request.', 'wp-instant-requests' ), 429 );
-                }
+		if ( get_transient( $tkey ) ) {
+				wp_send_json_error( __( 'Please wait before sending another request.', 'wp-instant-requests' ), 429 );
+		}
 
 		if ( ! $name || ! $email || ! is_email( $email ) || ! $msg ) {
 			wp_send_json_error( __( 'Missing or invalid fields.', 'wp-instant-requests' ), 400 );
@@ -79,18 +79,18 @@ class WIR_Ajax {
 			if ( ! $token ) {
 				wp_send_json_error( __( 'Captcha missing.', 'wp-instant-requests' ), 400 );
 			}
-                        $resp      = wp_safe_remote_post(
-                                'https://www.google.com/recaptcha/api/siteverify',
-                                array(
-                                        'timeout' => 8,
-                                        'body'    => array(
-                                                'secret'   => $o['recaptcha_secret'],
-                                                'response' => $token,
-                                                'remoteip' => $remote_ip,
-                                        ),
-                                )
-                        );
-			$ok        = false;
+						$resp = wp_safe_remote_post(
+							'https://www.google.com/recaptcha/api/siteverify',
+							array(
+								'timeout' => 8,
+								'body'    => array(
+									'secret'   => $o['recaptcha_secret'],
+									'response' => $token,
+									'remoteip' => $remote_ip,
+								),
+							)
+						);
+			$ok               = false;
 			if ( ! is_wp_error( $resp ) ) {
 				$body = json_decode( wp_remote_retrieve_body( $resp ), true );
 				$ok   = ! empty( $body['success'] );
@@ -115,20 +115,20 @@ class WIR_Ajax {
 			wp_mail( $to, $subject, $body );
 		}
 
-                set_transient( $tkey, 1, MINUTE_IN_SECONDS );
+				set_transient( $tkey, 1, MINUTE_IN_SECONDS );
 
-                do_action(
-                        'wir_request_created',
-                        $post_id,
-                        array(
-                                'name'       => $name,
-                                'email'      => $email,
-				'topic'      => $topic,
-				'product_id' => $pid,
-				'message'    => wp_strip_all_tags( $msg ),
-			)
-		);
+				do_action(
+					'wir_request_created',
+					$post_id,
+					array(
+						'name'       => $name,
+						'email'      => $email,
+						'topic'      => $topic,
+						'product_id' => $pid,
+						'message'    => wp_strip_all_tags( $msg ),
+					)
+				);
 
-                wp_send_json_success( array( 'id' => $post_id ) );
-        }
+				wp_send_json_success( array( 'id' => $post_id ) );
+	}
 }

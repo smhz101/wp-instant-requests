@@ -54,17 +54,18 @@ class WIR_Admin {
 			'replied' => '#059669',
 			'closed'  => '#6b7280',
 		);
-		
-		$icons  = array(
+
+		$icons = array(
 			'open'    => 'email-alt',
 			'replied' => 'yes',
 			'closed'  => 'no-alt',
 		);
 
-		$color  = $colors[ $status ] ?? '#2563eb';
-		$icon   = $icons[ $status ] ?? 'email-alt';
+		$color = $colors[ $status ] ?? '#2563eb';
+		$icon  = $icons[ $status ] ?? 'email-alt';
 
-		return sprintf( '<span class="wir-badge wir-status-badge" style="background:%1$s1a;color:%1$s"><span class="dashicons dashicons-%2$s"></span>%3$s</span>',
+		return sprintf(
+			'<span class="wir-badge wir-status-badge" style="background:%1$s1a;color:%1$s"><span class="dashicons dashicons-%2$s"></span>%3$s</span>',
 			esc_attr( $color ),
 			esc_attr( $icon ),
 			esc_html( $status )
@@ -265,7 +266,7 @@ class WIR_Admin {
 		} else {
 			update_post_meta( $id, '_wir_starred', 1 );
 		}
-		
+
 		wp_send_json_success( array( 'starred' => empty( $curr ) ) );
 	}
 
@@ -345,7 +346,7 @@ class WIR_Admin {
 			'no_found_rows'  => false,
 		);
 
-		$q     = new WP_Query( $q_args );
+		$q = new WP_Query( $q_args );
 
 		$count = (int) $q->found_posts;
 
@@ -362,27 +363,30 @@ class WIR_Admin {
 		check_ajax_referer( 'wir_admin_nonce', 'nonce' );
 
 		$last_id = absint( $_POST['last_id'] ?? 0 );
-		
+
 		// If there's no last seen ID, skip querying posts and just return unread count.
 		if ( ! $last_id ) {
-		$unread = self::unread_count();
-		wp_send_json_success( array( 'unread' => $unread ) );
+			$unread = self::unread_count();
+			wp_send_json_success( array( 'unread' => $unread ) );
 		}
-		
+
 		$args = array(
-		'post_type'      => WIR_Plugin::CPT,
-		'posts_per_page' => 50,
-		'orderby'        => 'ID',
-		'order'          => 'ASC',
+			'post_type'      => WIR_Plugin::CPT,
+			'posts_per_page' => 50,
+			'orderby'        => 'ID',
+			'order'          => 'ASC',
 		);
-		
-		add_filter( 'posts_where', $where_filter = function ( $where ) use ( $last_id ) {
-		global $wpdb;
-		return $where . $wpdb->prepare( " AND {$wpdb->posts}.ID > %d", $last_id );
-		} );
-		
+
+		add_filter(
+			'posts_where',
+			$where_filter = function ( $where ) use ( $last_id ) {
+				global $wpdb;
+				return $where . $wpdb->prepare( " AND {$wpdb->posts}.ID > %d", $last_id );
+			}
+		);
+
 		$q = new WP_Query( $args );
-		
+
 		remove_filter( 'posts_where', $where_filter );
 
 		$items  = array();
@@ -578,12 +582,12 @@ class WIR_Admin {
 		update_option( 'wir_last_seen_open', $open );
 		self::enqueue_menu_refresh();
 
-// Inputs
-$search   = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
-$topic    = isset( $_GET['topic'] ) ? sanitize_text_field( wp_unslash( $_GET['topic'] ) ) : '';
-$status   = isset( $_GET['status'] ) ? sanitize_text_field( wp_unslash( $_GET['status'] ) ) : '';
-$assignee = isset( $_GET['assignee'] ) ? absint( $_GET['assignee'] ) : 0;
-$paged    = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
+		// Inputs
+		$search   = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
+		$topic    = isset( $_GET['topic'] ) ? sanitize_text_field( wp_unslash( $_GET['topic'] ) ) : '';
+		$status   = isset( $_GET['status'] ) ? sanitize_text_field( wp_unslash( $_GET['status'] ) ) : '';
+		$assignee = isset( $_GET['assignee'] ) ? absint( $_GET['assignee'] ) : 0;
+		$paged    = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
 
 		// Pinned first (INT 1), then newest — without hiding unpinned
 		$args = array(
@@ -606,23 +610,23 @@ $paged    = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
 			);
 		}
 
-// Status filter
-if ( $status !== '' ) {
-$meta_query[] = array(
-'key'     => '_wir_status',
-'value'   => $status,
-'compare' => '=',
-);
-}
+		// Status filter
+		if ( $status !== '' ) {
+			$meta_query[] = array(
+				'key'     => '_wir_status',
+				'value'   => $status,
+				'compare' => '=',
+			);
+		}
 
-// Assignee filter
-if ( $assignee ) {
-$meta_query[] = array(
-'key'     => '_wir_assigned',
-'value'   => $assignee,
-'compare' => '=',
-);
-}
+		// Assignee filter
+		if ( $assignee ) {
+			$meta_query[] = array(
+				'key'     => '_wir_assigned',
+				'value'   => $assignee,
+				'compare' => '=',
+			);
+		}
 
 		/**
 		 * IMPORTANT: add a *named* OR group that matches both:
@@ -660,18 +664,18 @@ $meta_query[] = array(
 		// $assignee_name = $assignee ? get_user_by('id', $assignee)->display_name : '';
 		// $thread = get_post_meta(get_the_ID(), '_wir_thread', true); // array
 
-// Topics list for filter (from settings)
-$topics = array_values(
-array_unique(
-array_filter(
-array_map( 'trim', preg_split( '/\r\n|\r|\n/', (string) WIR_Plugin::settings()['topics'] ) )
-)
-)
-);
+		// Topics list for filter (from settings)
+		$topics = array_values(
+			array_unique(
+				array_filter(
+					array_map( 'trim', preg_split( '/\r\n|\r|\n/', (string) WIR_Plugin::settings()['topics'] ) )
+				)
+			)
+		);
 
-// Assignees list for filter
-$assignees = get_users( array( 'fields' => array( 'ID', 'display_name' ) ) );
-?>
+		// Assignees list for filter
+		$assignees = get_users( array( 'fields' => array( 'ID', 'display_name' ) ) );
+		?>
 
 		<div class="wir-wrap">
 			<h1 class="wir-title"><?php esc_html_e( 'All Requests', 'wp-instant-requests' ); ?></h1>
@@ -692,14 +696,14 @@ $assignees = get_users( array( 'fields' => array( 'ID', 'display_name' ) ) );
 
 <select name="status">
 <option value=""><?php esc_html_e( 'All statuses', 'wp-instant-requests' ); ?></option>
-<?php foreach ( array( 'open', 'replied', 'closed' ) as $_s ) : ?>
+		<?php foreach ( array( 'open', 'replied', 'closed' ) as $_s ) : ?>
 <option value="<?php echo esc_attr( $_s ); ?>" <?php selected( $status, $_s ); ?>><?php echo esc_html( ucfirst( $_s ) ); ?></option>
 <?php endforeach; ?>
 </select>
 
 <select name="assignee">
 <option value=""><?php esc_html_e( 'All assignees', 'wp-instant-requests' ); ?></option>
-<?php foreach ( $assignees as $_u ) : ?>
+		<?php foreach ( $assignees as $_u ) : ?>
 <option value="<?php echo esc_attr( $_u->ID ); ?>" <?php selected( $assignee, $_u->ID ); ?>><?php echo esc_html( $_u->display_name ); ?></option>
 <?php endforeach; ?>
 </select>
@@ -1007,39 +1011,39 @@ $assignees = get_users( array( 'fields' => array( 'ID', 'display_name' ) ) );
 		check_admin_referer( 'wir_export_csv' );
 
 		// Rebuild same query from $_GET
-$args = array(
-'post_type'      => 'wir_request',
-'posts_per_page' => -1,
-'orderby'        => 'date',
-'order'          => 'DESC',
-'s'              => sanitize_text_field( wp_unslash( $_GET['s'] ?? '' ) ),
-);
+		$args = array(
+			'post_type'      => 'wir_request',
+			'posts_per_page' => -1,
+			'orderby'        => 'date',
+			'order'          => 'DESC',
+			's'              => sanitize_text_field( wp_unslash( $_GET['s'] ?? '' ) ),
+		);
 
 		$meta = array();
-		
-if ( ! empty( $_GET['topic'] ) ) {
-$meta[] = array(
-'key'     => '_wir_topic',
-'value'   => sanitize_text_field( wp_unslash( $_GET['topic'] ) ),
-'compare' => '=',
-);
-}
 
-if ( ! empty( $_GET['status'] ) ) {
-$meta[] = array(
-'key'     => '_wir_status',
-'value'   => sanitize_text_field( wp_unslash( $_GET['status'] ) ),
-'compare' => '=',
-);
-}
+		if ( ! empty( $_GET['topic'] ) ) {
+			$meta[] = array(
+				'key'     => '_wir_topic',
+				'value'   => sanitize_text_field( wp_unslash( $_GET['topic'] ) ),
+				'compare' => '=',
+			);
+		}
 
-if ( ! empty( $_GET['assignee'] ) ) {
-$meta[] = array(
-'key'     => '_wir_assigned',
-'value'   => absint( $_GET['assignee'] ),
-'compare' => '=',
-);
-}
+		if ( ! empty( $_GET['status'] ) ) {
+			$meta[] = array(
+				'key'     => '_wir_status',
+				'value'   => sanitize_text_field( wp_unslash( $_GET['status'] ) ),
+				'compare' => '=',
+			);
+		}
+
+		if ( ! empty( $_GET['assignee'] ) ) {
+			$meta[] = array(
+				'key'     => '_wir_assigned',
+				'value'   => absint( $_GET['assignee'] ),
+				'compare' => '=',
+			);
+		}
 
 		if ( $meta ) {
 			$args['meta_query'] = $meta;
@@ -1049,11 +1053,11 @@ $meta[] = array(
 
 		header( 'Content-Type: text/csv; charset=utf-8' );
 		header( 'Content-Disposition: attachment; filename=wir-requests.csv' );
-		
+
 		$out = fopen( 'php://output', 'w' );
-		
+
 		fputcsv( $out, array( 'ID', 'Date', 'Name', 'Email', 'Topic', 'Product', 'Status', 'Assignee', 'Message' ) );
-		
+
 		while ( $q->have_posts() ) {
 			$q->the_post();
 			$id = get_the_ID();
