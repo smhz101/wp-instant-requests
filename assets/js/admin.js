@@ -88,13 +88,14 @@
       $t.append('<div class="wir-empty">' + WIRAdmin.i18n.no_messages + '</div>');
       return;
     }
-    items.forEach((m) => {
+    items.forEach((m, i) => {
       const who = m.type === 'out' ? 'admin' : 'user';
       const status = m.status ? '<div class="wir-msg-status">' + m.status + '</div>' : '';
       const ts = m.time ? new Date(m.time * 1000).toLocaleString() : '';
       $t.append(
         '<div class="wir-msg is-' +
           who +
+          (i === 0 ? ' is-first' : '') +
           '">' +
           '<div class="wir-msg-head">' +
           (who === 'admin' ? 'You' : 'User') +

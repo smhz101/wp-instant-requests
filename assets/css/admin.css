@@ -230,17 +230,23 @@
 	margin: 12px 0;
 }
 .wir-msg {
-	background: #fff;
-	border: 1px solid #e5e7eb;
-	border-radius: 10px;
-	padding: 10px 12px;
-	margin-bottom: 10px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin-bottom: 10px;
+}
+.wir-msg.is-first {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: #f8fafc;
 }
 .wir-msg.is-admin {
-	border-left: 4px solid #2563eb;
+        border-left: 4px solid #2563eb;
 }
 .wir-msg.is-user {
-	border-left: 4px solid #10b981;
+        border-left: 4px solid #10b981;
 }
 .wir-msg-head {
 	font-size: 12px;
