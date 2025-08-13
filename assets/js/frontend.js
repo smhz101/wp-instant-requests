@@ -12,6 +12,7 @@
     el('wir-message').value = '';
     el('wir-gdpr').checked = false;
     el('wir-status').textContent = '';
+    if (el('wir-hp')) el('wir-hp').value = '';
     el('wir-modal').style.display = 'flex';
     el('wir-backdrop').style.display = 'block';
   }
@@ -78,6 +79,7 @@
       topic: el('wir-topic').value,
       message: el('wir-message').value.trim(),
       gdpr: el('wir-gdpr').checked ? '1' : '0',
+      hp: el('wir-hp') ? el('wir-hp').value.trim() : '',
     };
     if (!data.name || !data.email || !data.message) {
       status.textContent = WIRData.i18n_required || 'Please fill required fields.';

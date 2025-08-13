@@ -119,13 +119,15 @@ class WIR_Assets {
 				<label class="wir-label" style="margin-top:10px;"><?php esc_html_e( 'Topic', 'wp-instant-requests' ); ?></label>
 				<select class="wir-select" id="wir-topic"></select>
 
-				<label class="wir-label" style="margin-top:10px;"><?php esc_html_e( 'Message', 'wp-instant-requests' ); ?></label>
-				<textarea class="wir-textarea" id="wir-message" rows="5" maxlength="2000" placeholder="<?php esc_attr_e( 'Type your question or request…', 'wp-instant-requests' ); ?>"></textarea>
+                               <label class="wir-label" style="margin-top:10px;"><?php esc_html_e( 'Message', 'wp-instant-requests' ); ?></label>
+                               <textarea class="wir-textarea" id="wir-message" rows="5" maxlength="2000" placeholder="<?php esc_attr_e( 'Type your question or request…', 'wp-instant-requests' ); ?>"></textarea>
 
-				<label style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;">
-					<input type="checkbox" id="wir-gdpr" />
-					<span id="wir-gdpr-label"><?php echo esc_html( $o['gdpr_label'] ?? '' ); ?></span>
-				</label>
+                               <input type="text" id="wir-hp" autocomplete="off" tabindex="-1" style="display:none" aria-hidden="true" />
+
+                               <label style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;">
+                                        <input type="checkbox" id="wir-gdpr" />
+                                        <span id="wir-gdpr-label"><?php echo esc_html( $o['gdpr_label'] ?? '' ); ?></span>
+                               </label>
 
 				<div class="wir-actions">
 					<button class="wir-btn wir-btn-secondary" id="wir-cancel"><?php esc_html_e( 'Cancel', 'wp-instant-requests' ); ?></button>
