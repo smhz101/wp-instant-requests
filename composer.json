@@ -1,0 +1,13 @@
+{
+  "name": "wp-instant-requests/wp-instant-requests",
+  "type": "project",
+  "require-dev": {
+    "wp-coding-standards/wpcs": "^3",
+    "dealerdirect/phpcodesniffer-composer-installer": "^1"
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  }
+}
