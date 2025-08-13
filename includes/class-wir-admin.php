@@ -226,7 +226,7 @@ class WIR_Admin {
 
 		if ( $open > 0 ) {
 			$title .= sprintf(
-				'<span class="update-plugins count-%1$d"><span class="plugin-count">%1$d</span></span>',
+				' <span class="update-plugins count-%1$d"><span class="plugin-count">%1$d</span></span>',
 				$open
 			);
 		}
@@ -861,3 +861,6 @@ class WIR_Admin {
 		exit;
 	}
 }
+
+add_action( 'save_post_wir_request', array( WIR_Admin::class, 'refresh_menu_badge' ) );
+add_action( 'transition_post_status', array( WIR_Admin::class, 'transition_menu_badge' ), 10, 3 );
