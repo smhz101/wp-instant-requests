@@ -438,7 +438,7 @@ class WIR_Admin {
 		}
 
 		wp_enqueue_style( 'wir-admin', WIR_URL . 'assets/css/admin.css', array(), WIR_VERSION );
-		wp_enqueue_script( 'wir-admin', WIR_URL . 'assets/js/admin.js', array( 'jquery' ), WIR_VERSION, true );
+               wp_enqueue_script( 'wir-admin', WIR_URL . 'assets/js/admin.js', array( 'jquery', 'wir-admin-badge' ), WIR_VERSION, true );
 
 		wp_localize_script(
 			'wir-admin',

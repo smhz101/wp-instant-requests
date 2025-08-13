@@ -26,8 +26,8 @@
     }
   }
 
-  // Insert an item into the list while keeping pinned at the top (same logic as admin.js)
-  function placeItem($item) {
+    // Insert an item into the list while keeping pinned at the top (same logic as admin.js)
+    function placeItem($item) {
     const $list = $('.wir-list-inner');
     if (!$list.length) return; // not on the mailbox page
     const time = parseInt($item.data('time'), 10) || 0;
@@ -35,7 +35,8 @@
       $list.prepend($item);
       return;
     }
-    let inserted = false;
+
+      let inserted = false;
     const $unpinned = $list.children('.wir-item').not('.is-pinned');
     $unpinned.each(function () {
       const t = parseInt($(this).data('time'), 10) || 0;
@@ -45,14 +46,18 @@
         return false;
       }
     });
-    if (!inserted) {
-      const $lastPinned = $list.children('.wir-item.is-pinned').last();
-      if ($lastPinned.length) $lastPinned.after($item);
-      else $list.append($item);
+      if (!inserted) {
+        const $lastPinned = $list.children('.wir-item.is-pinned').last();
+        if ($lastPinned.length) $lastPinned.after($item);
+        else $list.append($item);
+      }
     }
-  }
 
-  function scanInitialMaxId() {
+    // Expose utilities globally for admin.js
+    window.updateUnreadBadge = updateUnreadBadge;
+    window.placeItem = placeItem;
+
+    function scanInitialMaxId() {
     const ids = $('.wir-item')
       .map(function () {
         return parseInt($(this).data('id'), 10) || 0;
