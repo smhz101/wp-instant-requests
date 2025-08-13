@@ -3,8 +3,11 @@
   'use strict';
   const $d = $(document);
   const el = (id) => document.getElementById(id);
+  let lastFocused;
+  let focusable = [];
 
   function openModal() {
+    lastFocused = document.activeElement;
     fillTopics();
     el('wir-gdpr-label').textContent = WIRData.gdpr || '';
     el('wir-name').value = WIRData.user || '';
@@ -15,10 +18,18 @@
     if (el('wir-hp')) el('wir-hp').value = '';
     el('wir-modal').style.display = 'flex';
     el('wir-backdrop').style.display = 'block';
+    focusable = el('wir-modal').querySelectorAll(
+      'a[href], button:not([disabled]), textarea, input, select'
+    );
+    focusable = Array.prototype.slice.call(focusable);
+    if (focusable.length) focusable[0].focus();
   }
   function closeModal() {
     el('wir-modal').style.display = 'none';
     el('wir-backdrop').style.display = 'none';
+    if (lastFocused && typeof lastFocused.focus === 'function') {
+      lastFocused.focus();
+    }
   }
   function fillTopics() {
     const s = el('wir-topic');
@@ -34,7 +45,21 @@
   $d.on('click', '#wir-open', openModal);
   $d.on('click', '#wir-cancel, #wir-backdrop', closeModal);
   $d.on('keydown', function (e) {
-    if (e.key === 'Escape') closeModal();
+    if (e.key === 'Escape') {
+      closeModal();
+      return;
+    }
+    if (e.key === 'Tab' && el('wir-modal').style.display === 'flex') {
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    }
   });
 
   function getToken(cb) {
