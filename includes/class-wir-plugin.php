@@ -54,6 +54,7 @@ final class WIR_Plugin {
 				add_action( 'wp_ajax_wir_save_note', array( WIR_Admin::class, 'ajax_save_note' ) );
 				add_action( 'wp_ajax_wir_toggle_status', array( WIR_Admin::class, 'ajax_toggle_status' ) );
 				add_action( 'wp_ajax_wir_assign_me', array( WIR_Admin::class, 'ajax_assign_me' ) );
+				add_action( 'wp_ajax_wir_check_new', array( WIR_Admin::class, 'ajax_check_new' ) );
 				add_action( 'admin_post_wir_export_csv', array( WIR_Admin::class, 'export_csv' ) );
 			}
 		);

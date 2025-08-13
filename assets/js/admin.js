@@ -3,6 +3,7 @@
   'use strict';
   const $doc = $(document);
   let currentId = 0;
+  let lastKnownId = 0;
 
   // Set mailbox height based on available viewport space
   function setMailboxHeightVar() {
@@ -17,6 +18,10 @@
       // document.body.style.overflow = 'hidden';
     }
     setMailboxHeightVar();
+    const $first = $('.wir-item').first();
+    if ($first.length) {
+      lastKnownId = parseInt($first.data('id'), 10) || 0;
+    }
   });
   window.addEventListener('resize', setMailboxHeightVar);
 
@@ -114,6 +119,28 @@
     );
   }
 
+  function updateUnreadBadge(count) {
+    const $menu = $('#toplevel_page_wir .wp-menu-name');
+    let $badge = $menu.find('.update-plugins');
+    if (count > 0) {
+      if (!$badge.length) {
+        $badge = $(
+          '<span class="update-plugins count-' +
+            count +
+            '"><span class="plugin-count">' +
+            count +
+            '</span></span>'
+        );
+        $menu.append($badge);
+      } else {
+        $badge.attr('class', 'update-plugins count-' + count);
+        $badge.find('.plugin-count').text(count);
+      }
+    } else {
+      $badge.remove();
+    }
+  }
+
   // Select item
   $doc.on('click', '.wir-item', function () {
     $('.wir-item').removeClass('is-active');
@@ -187,6 +214,28 @@
       $btn.prop('disabled', false);
     });
   });
+
+  // Poll for new requests
+  setInterval(function () {
+    $.post(
+      WIRAdmin.ajax,
+      { action: 'wir_check_new', nonce: WIRAdmin.nonce, last_id: lastKnownId },
+      function (res) {
+        if (res && res.success) {
+          if (Array.isArray(res.data.items) && res.data.items.length) {
+            const $list = $('.wir-list-inner');
+            res.data.items.forEach(function (html) {
+              $list.prepend(html);
+            });
+            lastKnownId = parseInt(res.data.last_id, 10) || lastKnownId;
+          }
+          if (typeof res.data.unread !== 'undefined') {
+            updateUnreadBadge(parseInt(res.data.unread, 10) || 0);
+          }
+        }
+      }
+    );
+  }, 15000);
 
   // Toggle status
   $doc.on('click', '#wir-toggle-status', function (e) {
