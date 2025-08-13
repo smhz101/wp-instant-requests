@@ -578,10 +578,12 @@ class WIR_Admin {
 		update_option( 'wir_last_seen_open', $open );
 		self::enqueue_menu_refresh();
 
-		// Inputs
-		$search = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
-		$topic  = isset( $_GET['topic'] ) ? sanitize_text_field( wp_unslash( $_GET['topic'] ) ) : '';
-		$paged  = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
+// Inputs
+$search   = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
+$topic    = isset( $_GET['topic'] ) ? sanitize_text_field( wp_unslash( $_GET['topic'] ) ) : '';
+$status   = isset( $_GET['status'] ) ? sanitize_text_field( wp_unslash( $_GET['status'] ) ) : '';
+$assignee = isset( $_GET['assignee'] ) ? absint( $_GET['assignee'] ) : 0;
+$paged    = isset( $_GET['paged'] ) ? max( 1, absint( $_GET['paged'] ) ) : 1;
 
 		// Pinned first (INT 1), then newest — without hiding unpinned
 		$args = array(
@@ -604,23 +606,23 @@ class WIR_Admin {
 			);
 		}
 
-		// Status filter
-		if ( ! empty( $_GET['status'] ) ) {
-			$meta_query[] = array(
-				'key'     => '_wir_status',
-				'value'   => sanitize_text_field( wp_unslash( $_GET['status'] ) ),
-				'compare' => '=',
-			);
-		}
+// Status filter
+if ( $status !== '' ) {
+$meta_query[] = array(
+'key'     => '_wir_status',
+'value'   => $status,
+'compare' => '=',
+);
+}
 
-		// Assigned-to-me filter
-		if ( ! empty( $_GET['mine'] ) && get_current_user_id() ) {
-			$meta_query[] = array(
-				'key'     => '_wir_assigned',
-				'value'   => get_current_user_id(),
-				'compare' => '=',
-			);
-		}
+// Assignee filter
+if ( $assignee ) {
+$meta_query[] = array(
+'key'     => '_wir_assigned',
+'value'   => $assignee,
+'compare' => '=',
+);
+}
 
 		/**
 		 * IMPORTANT: add a *named* OR group that matches both:
@@ -658,15 +660,18 @@ class WIR_Admin {
 		// $assignee_name = $assignee ? get_user_by('id', $assignee)->display_name : '';
 		// $thread = get_post_meta(get_the_ID(), '_wir_thread', true); // array
 
-		// Topics list for filter (from settings)
-		$topics = array_values(
-			array_unique(
-				array_filter(
-					array_map( 'trim', preg_split( '/\r\n|\r|\n/', (string) WIR_Plugin::settings()['topics'] ) )
-				)
-			)
-		);
-		?>
+// Topics list for filter (from settings)
+$topics = array_values(
+array_unique(
+array_filter(
+array_map( 'trim', preg_split( '/\r\n|\r|\n/', (string) WIR_Plugin::settings()['topics'] ) )
+)
+)
+);
+
+// Assignees list for filter
+$assignees = get_users( array( 'fields' => array( 'ID', 'display_name' ) ) );
+?>
 
 		<div class="wir-wrap">
 			<h1 class="wir-title"><?php esc_html_e( 'All Requests', 'wp-instant-requests' ); ?></h1>
@@ -685,15 +690,21 @@ class WIR_Admin {
 						<?php endforeach; ?>
 					</select>
 
-						<select name="status">
-						<?php $status_q = sanitize_text_field( $_GET['status'] ?? '' ); ?>
-						<option value=""><?php esc_html_e( 'All statuses', 'wp-instant-requests' ); ?></option>
-						<?php foreach ( array( 'open', 'replied', 'closed' ) as $_s ) : ?>
-						<option value="<?php echo esc_attr( $_s ); ?>" <?php selected( $status_q, $_s ); ?>><?php echo esc_html( ucfirst( $_s ) ); ?></option>
-						<?php endforeach; ?>
-					</select>
-					<label><input type="checkbox" name="mine" value="1" <?php checked( ! empty( $_GET['mine'] ) ); ?>> <?php esc_html_e( 'Assigned to me', 'wp-instant-requests' ); ?></label>
-					<button class="button"><?php esc_html_e( 'Filter', 'wp-instant-requests' ); ?></button>
+<select name="status">
+<option value=""><?php esc_html_e( 'All statuses', 'wp-instant-requests' ); ?></option>
+<?php foreach ( array( 'open', 'replied', 'closed' ) as $_s ) : ?>
+<option value="<?php echo esc_attr( $_s ); ?>" <?php selected( $status, $_s ); ?>><?php echo esc_html( ucfirst( $_s ) ); ?></option>
+<?php endforeach; ?>
+</select>
+
+<select name="assignee">
+<option value=""><?php esc_html_e( 'All assignees', 'wp-instant-requests' ); ?></option>
+<?php foreach ( $assignees as $_u ) : ?>
+<option value="<?php echo esc_attr( $_u->ID ); ?>" <?php selected( $assignee, $_u->ID ); ?>><?php echo esc_html( $_u->display_name ); ?></option>
+<?php endforeach; ?>
+</select>
+
+<button class="button"><?php esc_html_e( 'Filter', 'wp-instant-requests' ); ?></button>
 
 					<!-- CSV export preserves filters -->
 					<a class="button" href="<?php echo esc_url( wp_nonce_url( add_query_arg( array_merge( $_GET, array( 'action' => 'wir_export_csv' ) ), admin_url( 'admin-post.php' ) ), 'wir_export_csv' ) ); ?>">
@@ -996,39 +1007,39 @@ class WIR_Admin {
 		check_admin_referer( 'wir_export_csv' );
 
 		// Rebuild same query from $_GET
-		$args = array(
-			'post_type'      => 'wir_request',
-			'posts_per_page' => -1,
-			'orderby'        => 'date',
-			'order'          => 'DESC',
-			's'              => sanitize_text_field( $_GET['s'] ?? '' ),
-		);
+$args = array(
+'post_type'      => 'wir_request',
+'posts_per_page' => -1,
+'orderby'        => 'date',
+'order'          => 'DESC',
+'s'              => sanitize_text_field( wp_unslash( $_GET['s'] ?? '' ) ),
+);
 
 		$meta = array();
 		
-		if ( ! empty( $_GET['topic'] ) ) {
-			$meta[] = array(
-				'key'     => '_wir_topic',
-				'value'   => sanitize_text_field( $_GET['topic'] ),
-				'compare' => '=',
-			);
-		}
+if ( ! empty( $_GET['topic'] ) ) {
+$meta[] = array(
+'key'     => '_wir_topic',
+'value'   => sanitize_text_field( wp_unslash( $_GET['topic'] ) ),
+'compare' => '=',
+);
+}
 
-		if ( ! empty( $_GET['status'] ) ) {
-			$meta[] = array(
-				'key'     => '_wir_status',
-				'value'   => sanitize_text_field( $_GET['status'] ),
-				'compare' => '=',
-			);
-		}
+if ( ! empty( $_GET['status'] ) ) {
+$meta[] = array(
+'key'     => '_wir_status',
+'value'   => sanitize_text_field( wp_unslash( $_GET['status'] ) ),
+'compare' => '=',
+);
+}
 
-		if ( ! empty( $_GET['mine'] ) ) {
-			$meta[] = array(
-				'key'     => '_wir_assigned',
-				'value'   => get_current_user_id(),
-				'compare' => '=',
-			);
-		}
+if ( ! empty( $_GET['assignee'] ) ) {
+$meta[] = array(
+'key'     => '_wir_assigned',
+'value'   => absint( $_GET['assignee'] ),
+'compare' => '=',
+);
+}
 
 		if ( $meta ) {
 			$args['meta_query'] = $meta;
