@@ -52,9 +52,14 @@ class WIR_Ajax {
         if (!empty($o['recaptcha_secret'])) {
             $token = isset($_POST['g_recaptcha_response']) ? sanitize_text_field(wp_unslash($_POST['g_recaptcha_response'])) : '';
             if (!$token) wp_send_json_error(__('Captcha missing.','wp-instant-requests'),400);
-            $resp = wp_remote_post('https://www.google.com/recaptcha/api/siteverify', [
+            $remote_ip = isset($_SERVER['REMOTE_ADDR']) ? sanitize_text_field(wp_unslash($_SERVER['REMOTE_ADDR'])) : '';
+            $resp = wp_safe_remote_post('https://www.google.com/recaptcha/api/siteverify', [
                 'timeout'=>8,
-                'body' => ['secret'=>$o['recaptcha_secret'],'response'=>$token, 'remoteip'=>$_SERVER['REMOTE_ADDR'] ?? '']
+                'body' => [
+                    'secret'=>$o['recaptcha_secret'],
+                    'response'=>$token,
+                    'remoteip'=>$remote_ip
+                ]
             ]);
             $ok = false;
             if (!is_wp_error($resp)) {
